@@ -1,0 +1,51 @@
+{
+    "filters": [
+        3,
+        4,
+        1,
+        2,
+        1
+    ],
+    "params": [
+        0.43613951312559374,
+        0.8994091811680429,
+        0.5050261993283215,
+        0.9,
+        0.35371316384925927,
+        0.9250003086924464,
+        0.17773347728884065,
+        0.6268334228732433,
+        0.488025762208443,
+        1.0783270741508866
+    ],
+    "fitness": [
+        0.84,
+        12.20518454345235
+    ],
+    "Attack rate": 0.1344,
+    "norm inf": 0.17922344315052033,
+    "norm 2": 13.959424374736,
+    "norm 1": 163.06150602852506,
+    "norm 0": 1.0,
+    "feature squeezing": 4.5752744140625e-05,
+    "in_params": {
+        "dataset": "IMAGENET-SUBSET-200",
+        "logs": "instagram_ES_offspring_pareto_imgnet_new_norm_inf_200_vgg19.txt",
+        "input": "None",
+        "test": "True",
+        "save_adv_ex": "300",
+        "show_info": "True",
+        "number_of_filters": "5",
+        "population_size": "10",
+        "batch_size": "100",
+        "epochs": "3",
+        "params_optimizer": "ES",
+        "params_strategy": "direct",
+        "params_pool": "offsprings",
+        "selection": "pareto",
+        "elitims": "True",
+        "distance_function": "fid",
+        "output": "instagram_ES_offspring_pareto_imgnet_model_new_norm_inf_200_vgg19.json"
+    },
+    "filters_data": "gANdcQAoY2Fndl9maWx0ZXJzCkltYWdlRmlsdGVyCnEBKYFxAn1xAyhYBAAAAG5hbWVxBFgJAAAAY2xhcmVuZG9ucQVYBwAAAGRvbWFpbnNxBl1xByhjYWd2X2ZpbHRlcnMKUGFyYW1ldGVyRG9tYWluCnEIKYFxCX1xCihoBFgJAAAAaW50ZW5zaXR5cQtYBQAAAHB0eXBlcQxjYWd2X2ZpbHRlcnMKUGFyYW1ldGVyVHlwZQpxDSmBcQ59cQ8oaAxjYnVpbHRpbnMKZmxvYXQKcRBYDQAAAGlzX2NsYXNzX3R5cGVxEYl1YlgGAAAAZG9tYWlucRJdcRMoRz+5mZmZmZmaRz/wAAAAAAAAZVgFAAAAdmFsdWVxFEc/8AAAAAAAAHViaAgpgXEVfXEWKGgEWAUAAABhbHBoYXEXaAxoDSmBcRh9cRkoaAxoEGgRiXViaBJdcRooRz/pmZmZmZmaRz/0zMzMzMzNZWgURz/wAAAAAAAAdWJlWAMAAABmdW5xG2NmaWx0ZXJzCmNsYXJlbmRvbgpxHHViaAEpgXEdfXEeKGgEWAcAAABnaW5naGFtcR9oBl1xIChoCCmBcSF9cSIoaARoC2gMaA0pgXEjfXEkKGgMaBBoEYl1YmgSXXElKEc/uZmZmZmZmkc/8AAAAAAAAGVoFEc/8AAAAAAAAHViaAgpgXEmfXEnKGgEaBdoDGgNKYFxKH1xKShoDGgQaBGJdWJoEl1xKihHP+mZmZmZmZpHP/TMzMzMzM1laBRHP/AAAAAAAAB1YmVoG2NmaWx0ZXJzCmdpbmdoYW0KcSt1YmgBKYFxLH1xLShoBFgEAAAAanVub3EuaAZdcS8oaAgpgXEwfXExKGgEaAtoDGgNKYFxMn1xMyhoDGgQaBGJdWJoEl1xNChHP7mZmZmZmZpHP/AAAAAAAABlaBRHP/AAAAAAAAB1YmgIKYFxNX1xNihoBGgXaAxoDSmBcTd9cTgoaAxoEGgRiXViaBJdcTkoRz/gAAAAAAAARz/4AAAAAAAAZWgURz/wAAAAAAAAdWJlaBtjZmlsdGVycwpqdW5vCnE6dWJoASmBcTt9cTwoaARYBQAAAHJleWVzcT1oBl1xPihoCCmBcT99cUAoaARoC2gMaA0pgXFBfXFCKGgMaBBoEYl1YmgSXXFDKEc/uZmZmZmZmkc/8AAAAAAAAGVoFEc/8AAAAAAAAHViaAgpgXFEfXFFKGgEaBdoDGgNKYFxRn1xRyhoDGgQaBGJdWJoEl1xSChHP+mZmZmZmZpHP/GZmZmZmZplaBRHP/AAAAAAAAB1YmVoG2NmaWx0ZXJzCnJleWVzCnFJdWJoASmBcUp9cUsoaARYBAAAAGxhcmtxTGgGXXFNKGgIKYFxTn1xTyhoBGgLaAxoDSmBcVB9cVEoaAxoEGgRiXViaBJdcVIoRz+5mZmZmZmaRz/wAAAAAAAAZWgURz/wAAAAAAAAdWJoCCmBcVN9cVQoaARoF2gMaA0pgXFVfXFWKGgMaBBoEYl1YmgSXXFXKEc/7MzMzMzMzUc/8ZmZmZmZmmVoFEc/8AAAAAAAAHViZWgbY2ZpbHRlcnMKbGFya19oc3YKcVh1YmUu"
+}

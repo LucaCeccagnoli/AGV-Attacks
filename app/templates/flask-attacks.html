@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- bootstrap and jQuery -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- aggiungere css esterno, per ora il path non funziona -->
+    <style>
+        .border-3{
+            border-width: 3px !important;
+        }
+
+        .square:before{
+            display: block;
+            padding-top: 100%; 
+        }
+    </style>
+    <title>Document</title>
+</head>
+<body>
+    <h1 class = "container mt-2 mb-2" >Flask Attacks</h1>
+    <!-- User Form -->
+    <div class = "container border border-3 rounded">
+        <br>
+        <div id="form-message" class = "text-danger"></div>
+        <form id = "attack-form" class="form" method="POST" action="runattack/" enctype="multipart/form-data">
+            <h5>Upload an Image</h5>
+            <div>{{ form.custom_image(accept="image/*", id = "image-upload") }}</div>
+            <br>
+            <h5>Select an attack model</h5>
+            <div>{{ form.model() }}</div>
+            <br>
+            <h5>Select a network to attack</h5>
+            <div>{{ form.network }}</div>
+            <br>
+            <button id = 'attack-button' class="btn btn-danger row ml-1 mb-3">Run Attack</button>
+        </form>
+    </div>
+    <br>
+
+    <!-- attack notification -->
+    <p id = "loading" class = "container"> Running attack... </p>
+
+    <!--display images-->
+    <div id = "img-display" class="container border border-3 rounded p-3">
+        <div class="row">
+            <div class="col-5 text-left">
+                <h5>Original</h5> 
+            </div>
+            <div class="col-1"></div>
+            <div class="col-1 text-left">
+                <div class = "h5">Modified</div>
+            </div>
+            <a id = "download" class="col-1 text-left" download>Download</a>
+        </div>
+        <div class="row">
+            <div class="col-5">
+                <img id = "original-image" src="" alt="" class="img img-thumbnail mx-auto">
+            </div>
+            <div class="col-1"></div>
+            <div class="col-5">
+                <img id = "modified-image" src="" alt="" class="img img-thumbnail mx-auto">
+            </div>
+        </div>
+    </div>
+    <br>
+    <br>
+</body>
+<script>
+    const VALID_IMAGE_TYPES = ['image/jpg', 'image/jpeg', 'image/png'];
+    var selected_image = null;
+
+    //hide image display
+    $("#img-display").hide();
+    $("#loading").hide()
+
+    // when the user uploads an image, checks if it is an image
+    $("#image-upload").change(function(){
+        const file = this.files[0];
+        if(file){
+            if (!VALID_IMAGE_TYPES.includes(file['type'])) {
+                // notify the user and reset the input field
+                $("#form-message").css({"color": "#d9534f"});
+                $("#form-message").html("Please select an image in format png / jpg / jpeg.");
+                $("#form-message").show()
+                $("#image-upload").val(null);
+            }
+            else{
+                // save the input value
+                selected_image =  $('#image-upload').prop("files")[0];
+                console.log(selected_image)
+            }
+        }
+    });
+
+    $('#attack-button').on("click", function(e){
+        // prevents page reload
+        e.preventDefault();
+
+        // gets the uploaded image and puts additional data in json
+        var image = $('#image-upload').prop("files")[0];
+        var jsonData = {}
+        jsonData['model'] = $('#model').val()
+        console.log(jsonData['model'])
+
+        // validate input
+        if(!image){
+            $("#form-message").html("Please select an image to upload.");
+            return
+        }
+        if(jsonData['model'] == ''){
+            $("#form-message").html("Please select a model for the attack.");
+            return
+        }
+
+        // add data to FormData to send it in ajax
+        var formData = new FormData();
+        formData.append("image", image);
+        formData.append("jsonData", JSON.stringify(jsonData));
+        
+        // ajax request, contentType and processData have to be false for file apploading to work
+        $.ajax({
+            method: 'POST',
+            url: '{{url_for("run_attack")}}',
+            contentType: false,
+            processData: false,
+            data: formData,
+            xhr:function(){
+                $("#loading").show()    // show loading 
+                $("#form-message").hide()   //hide messages
+                $("#img-display").hide();   // hide loading
+
+                var xhr = new XMLHttpRequest();
+                xhr.responseType = 'blob'
+                return xhr;
+            }
+            
+        }).done(function(data){
+            console.log("complete");
+            const blob = new Blob([data.response], {type: "image/jpg"});     // specificare più tipi?
+
+            // show the original image
+            var imageUrl1 = window.URL || window.webkitURL;
+            $('#original-image').attr("src",imageUrl1.createObjectURL(selected_image));
+
+            // show the modified image 
+            var imageUrl2 = window.URL || window.webkitURL;
+            imageUrl2 = imageUrl2.createObjectURL(data)
+            $("#modified-image").attr("src", imageUrl2);
+
+            // add download link to the image
+            $("#download").attr('href', imageUrl2)
+
+            $("#img-display").show();   // show image display
+
+        }).fail(function(data){
+            switch(data.status){
+                case 404:
+                    $("#form-message").html("Couldn't find the modified image")
+                    break
+                case 500:
+                    $("#form-message").html("Internal server error")
+                    break;
+            }
+            $("#form-message").show()
+        }).always(function(data){
+            $("#loading").hide()    // hide loading text
+        });
+    });
+
+</script>
+</html>
