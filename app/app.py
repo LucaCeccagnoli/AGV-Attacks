@@ -2,13 +2,15 @@ import os
 import sys
 import json
 from PIL import Image
-from flask import Flask, render_template, request, jsonify, send_from_directory, abort
+from flask import Flask, render_template, request, jsonify, make_response
 from werkzeug.utils import secure_filename
 
 # project modules
 sys.path.append(os.path.abspath('../flask_attacks'))
-from run_attack import attack
 from forms import ModelForm
+from networks import get_predictions
+from run_attack import attack
+from filters import _file_to_cv
 
 # global variables
 MODEL_DIRECTORY = os.path.join(os.getcwd(), 'static/models/') 
@@ -22,6 +24,7 @@ SECRET_KEY = os.urandom(32)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = SECRET_KEY
+app.config['FLASK_DEBUG'] = 1
 
 # homepage
 @app.route('/')
@@ -32,7 +35,26 @@ def index():
 
     return render_template('flask-attacks.html', form = form)
 
-# execute attack
+@app.route('/predict/', methods = ['POST'])
+def run_prediction():
+    # get input
+    in_img = request.files['image']
+    data = json.loads(request.form['jsonData'])
+    network_name = data['network']
+
+    # predict the image class
+    prediction = get_predictions(_file_to_cv(in_img), network_name)
+    # TODO: salvare l'immagine convertita nel server?
+
+    # build and return the json response
+    response = {
+        "prediction": prediction, 
+    }
+
+    print(response)
+    return jsonify(response)
+
+# run attack
 @app.route('/runattack/', methods = ['POST'])
 def run_attack():
     if request.method == 'POST':
@@ -43,18 +65,23 @@ def run_attack():
         # read additional json data
         # data['model'] contains the string name of the model
         data = json.loads(request.form['jsonData'])
+        model_path =  os.path.join(MODEL_DIRECTORY, data['model'])
+        network = data['network']
     
         # run attack on the image, returns the modified image as a numpy array
-        # arguments: input image as array of bytes,
-        #            name of the model to run the attack, 
-        #            folder to save the modified image
-        #            filename for the modified image
-        img_path = os.path.join(UPLOAD_FOLDER, secure_filename(in_img.filename))
-        model_path =  os.path.join(MODEL_DIRECTORY, data['model'])
-        attack(in_img.read(), model_path , in_img.filename, img_path)
+        # arguments: input image as array of bytes, path to the model to run the attack, 
+        # returns a jpg image in base 64 which can be sent via json
+        mod_img_np, mod_img_b64 = attack(_file_to_cv(in_img), model_path)  
+        mod_class = get_predictions(mod_img_np, network)
 
-        # get the modified image
-        return send_from_directory(app.config['UPLOAD_FOLDER'], secure_filename("modified.jpg"), as_attachment=True)
+        # build and return the json response
+        response = {
+            "encoding": "data:image/jpeg;base64,", 
+            "img_base64": mod_img_b64,
+            "modified_class": mod_class
+        }
+
+        return jsonify(response)
 
 #returns all json files from the input path as attack models
 def get_models(path):

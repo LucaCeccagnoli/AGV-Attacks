@@ -3,29 +3,26 @@ import pickle
 import copy
 import base64
 import random
-import cv2
+import cv2, base64
 import PIL
 import numpy 
 import os
 
 from filters import _to_cv_image, _cv_to_array
 
-def attack(img_byte, model_path, filename, save_dir = None):
+def attack(in_img, model_path):
 
-    # convert the input image to numpy array
-    npimg = numpy.fromstring(img_byte, numpy.uint8)
-    cv2img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
-    img = _cv_to_array(cv2img)
-
+    # load the model and apply
     model = ModelLoader().load(model_path)
-    mod_img = model.apply(img)
+    in_img = _cv_to_array(in_img)
+    mod_img_np = model.apply(in_img)
 
-    if save_dir is not None:
-        path = 'static/images/modified.jpg'    # TEMPORANEO: se si passano dati di input imwrite non funziona
-        print(cv2.imwrite(path, _to_cv_image(mod_img)))
-        print("image saved!")
+    # convert modified image to jpg and decode in base64
+    buffer = cv2.imencode('.jpg', _to_cv_image(mod_img_np))
+    mod_image_b64 = base64.b64encode(buffer[1]).decode()
 
-    return mod_img
+    # return modified np image and base64 encoding
+    return (mod_img_np, mod_image_b64)
 
 class ModelLoader(object):
 

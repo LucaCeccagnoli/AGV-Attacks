@@ -19,31 +19,42 @@
             padding-top: 100%; 
         }
     </style>
+    <script type = "text/javascript">
+        // make the app path dynamic
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    </script>
     <title>Document</title>
 </head>
 <body>
     <h1 class = "container mt-2 mb-2" >Flask Attacks</h1>
     <!-- User Form -->
-    <div class = "container border border-3 rounded">
+    <div class = "container">
         <br>
         <div id="form-message" class = "text-danger"></div>
         <form id = "attack-form" class="form" method="POST" action="runattack/" enctype="multipart/form-data">
-            <h5>Upload an Image</h5>
-            <div>{{ form.custom_image(accept="image/*", id = "image-upload") }}</div>
-            <br>
-            <h5>Select an attack model</h5>
-            <div>{{ form.model() }}</div>
-            <br>
-            <h5>Select a network to attack</h5>
-            <div>{{ form.network }}</div>
-            <br>
-            <button id = 'attack-button' class="btn btn-danger row ml-1 mb-3">Run Attack</button>
+            <div id = "form-p1" class="container border border-3 rounded">
+                <h5>Upload an Image</h5>
+                <div>{{ form.custom_image(accept="image/*", id = "image-upload") }}</div>
+                <br>
+                <h5>Select a network to attack</h5>
+                <div>{{ form.network(id = "select-network") }}</div>
+                <br>
+                <p id = "original-class">Original class</p>
+            </div>
+            <div id = "form-p2" class="container border border-3 rounded">
+                <h5>Select an attack model</h5>
+                <div>{{ form.model() }}</div>
+                <br>
+                <p id = "modified-class">Modified class</p>
+                <button id = 'attack-button' class="btn btn-danger row ml-1 mb-3">Run Attack</button>
+            </div>
         </form>
     </div>
     <br>
 
     <!-- attack notification -->
-    <p id = "loading" class = "container"> Running attack... </p>
+    <p id = "prediction-loading" class = "container"> Predicting image class... </p>
+    <p id = "attack-loading" class = "container"> Running attack... </p>
 
     <!--display images-->
     <div id = "img-display" class="container border border-3 rounded p-3">
@@ -63,110 +74,213 @@
             </div>
             <div class="col-1"></div>
             <div class="col-5">
-                <img id = "modified-image" src="" alt="" class="img img-thumbnail mx-auto">
+                <img  id = 'modified-image' src="" class="img img-thumbnail mx-auto" />
             </div>
         </div>
     </div>
     <br>
+    <!-- classification result -->
+    <h5 id = "classification-result" class = "container text-center text-white"></h5>
     <br>
 </body>
 <script>
     const VALID_IMAGE_TYPES = ['image/jpg', 'image/jpeg', 'image/png'];
-    var selected_image = null;
+    var original_image = null;
+    var original_class = null;
+    var modified_class = null;
+    var network = null;
+
+    //hide model selection
+    $("#form-p2").hide();
 
     //hide image display
     $("#img-display").hide();
-    $("#loading").hide()
+    $("#prediction-loading").hide()
+    $("#attack-loading").hide()
+    $("classification-result").hide();
 
-    // when the user uploads an image, checks if it is an image
-    $("#image-upload").change(function(){
-        const file = this.files[0];
-        if(file){
-            if (!VALID_IMAGE_TYPES.includes(file['type'])) {
+    // when the user uploads an image, check its format
+    $('#image-upload').change(function(){
+        const image = $('#image-upload').prop("files")[0];
+        if (!VALID_IMAGE_TYPES.includes(image['type'])) {
                 // notify the user and reset the input field
-                $("#form-message").css({"color": "#d9534f"});
                 $("#form-message").html("Please select an image in format png / jpg / jpeg.");
                 $("#form-message").show()
                 $("#image-upload").val(null);
-            }
-            else{
-                // save the input value
-                selected_image =  $('#image-upload').prop("files")[0];
-                console.log(selected_image)
-            }
+        }else{
+            original_image = image
+            var imageUrl = window.URL || window.webkitURL;
+            $('#original-image').attr("src",imageUrl.createObjectURL(original_image));
         }
     });
+    
+    // when the user selects a network, if an image has been uploaded, run the prediction
+    $("#select-network").change(function(){
+        //get input values for network and original image
+        network = this.value
+
+        // validate input
+        if( !original_image || !network){ return } else {console.log("running prediction...")}
+
+        // add input data to ajax request
+        jsonData = {
+            "network": network
+        }
+        var formData = new FormData();
+        formData.append("image", original_image);
+        formData.append("jsonData", JSON.stringify(jsonData));
+
+        $.ajax({
+            method: "POST",
+            url: $SCRIPT_ROOT + "/predict/",
+            contentType: false,
+            processData: false,
+            data: formData,
+            dataType: "json",
+            xhr:function(){
+                // change UI
+                $("#form-message").hide()
+                $("#form-p2").hide();
+                $("#prediction-loading").show()
+                $("#classification-result").hide();
+
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function(){
+                    if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200){
+                        // get json response data
+                        response = xhr.responseText;
+                        response = JSON.parse(response);
+
+                        // Success code
+                        original_class = response['prediction']
+                        
+                        // change UI
+                        $("#original-class").html("Original class: " + original_class);
+                        $("#form-p2").show();
+                    }
+                    // error handling
+                    else if(xhr.readyState == XMLHttpRequest.DONE){
+                        switch(xhr.status){
+                            case 404:
+                                $("#form-message").html("Resource not found")
+                                $("#form-message").show()
+                                break
+                            case 500:
+                                $("#form-message").html("Internal server error")
+                                $("#form-message").show()
+                                break;
+                        }
+                    }
+                }
+                return xhr;
+            },
+            }).always(function(data){
+                // change UI
+                $("#prediction-loading").hide()  
+            });
+        }
+    );
 
     $('#attack-button').on("click", function(e){
         // prevents page reload
         e.preventDefault();
 
         // gets the uploaded image and puts additional data in json
-        var image = $('#image-upload').prop("files")[0];
         var jsonData = {}
         jsonData['model'] = $('#model').val()
-        console.log(jsonData['model'])
+        jsonData['network'] = network
+        console.log(jsonData['network'])
 
         // validate input
-        if(!image){
+        if(!original_image){
             $("#form-message").html("Please select an image to upload.");
+            $("#form-message").show()
             return
         }
         if(jsonData['model'] == ''){
             $("#form-message").html("Please select a model for the attack.");
+            $("#form-message").show()
+            return
+        }
+        if(jsonData['network'] == ''){
+            $("#form-message").html("Please select a network to attack.");
+            $("#form-message").show()
             return
         }
 
         // add data to FormData to send it in ajax
         var formData = new FormData();
-        formData.append("image", image);
+        formData.append("image", original_image);
         formData.append("jsonData", JSON.stringify(jsonData));
-        
-        // ajax request, contentType and processData have to be false for file apploading to work
+
+        // ajax request, contentType and processData have to be false for file uploading to work
         $.ajax({
-            method: 'POST',
-            url: '{{url_for("run_attack")}}',
+            method: "POST",
+            url: $SCRIPT_ROOT + "/runattack/",
             contentType: false,
             processData: false,
             data: formData,
+            dataType: "json",
             xhr:function(){
-                $("#loading").show()    // show loading 
-                $("#form-message").hide()   //hide messages
-                $("#img-display").hide();   // hide loading
+                // change UI
+                $("#form-message").hide()   
+                $("#img-display").hide(); 
+                $("#classification-result").hide();
+                $("#attack-loading").show()      
 
                 var xhr = new XMLHttpRequest();
-                xhr.responseType = 'blob'
+                xhr.onreadystatechange = function(){
+                    if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200){
+                        //get response data
+                        response = xhr.responseText;
+                        response = JSON.parse(response);
+
+                        //success code
+
+                        // show the modified image 
+                        $("#modified-image").attr("src", response['encoding'] + response['img_base64']);
+                        
+                        // compare predictions
+                        modified_class = response['modified_class']
+                        $("#modified-class").html("Modified class: " + modified_class);
+                        if(modified_class === original_class){
+                            $("#classification-result").html("Image classified correctly");
+                            $("#classification-result").removeClass("bg-danger");
+                            $("#classification-result").addClass("bg-success");
+                        }
+                        else{
+                            $("#classification-result").html("Image classified incorrectly");
+                            $("#classification-result").removeClass("bg-success");
+                            $("#classification-result").addClass("bg-danger");
+                        }
+                        $("#classification-result").show();
+
+                        // generate file and download link from the modified image 
+                        fetch(document.getElementById('modified-image').src)
+                        .then(res => res.blob())
+                        .then(blob => {
+                            var imageUrl2 = window.URL || window.webkitURL;
+                            $("#download").attr('href', imageUrl2.createObjectURL(blob))
+                        })
+                        
+                        $("#img-display").show();   // show image display
+                    }
+                    // error handling
+                    else if(xhr.readyState == XMLHttpRequest.DONE){
+                        switch(xhr.status){
+                            case 404:
+                                $("#form-message").html("Couldn't find the modified image")
+                                $("#form-message").show()
+                                break
+                            case 500:
+                                $("#form-message").html("Internal server error")
+                                $("#form-message").show()
+                                break;
+                        }
+                    }
+                }
                 return xhr;
-            }
-            
-        }).done(function(data){
-            console.log("complete");
-            const blob = new Blob([data.response], {type: "image/jpg"});     // specificare più tipi?
-
-            // show the original image
-            var imageUrl1 = window.URL || window.webkitURL;
-            $('#original-image').attr("src",imageUrl1.createObjectURL(selected_image));
-
-            // show the modified image 
-            var imageUrl2 = window.URL || window.webkitURL;
-            imageUrl2 = imageUrl2.createObjectURL(data)
-            $("#modified-image").attr("src", imageUrl2);
-
-            // add download link to the image
-            $("#download").attr('href', imageUrl2)
-
-            $("#img-display").show();   // show image display
-
-        }).fail(function(data){
-            switch(data.status){
-                case 404:
-                    $("#form-message").html("Couldn't find the modified image")
-                    break
-                case 500:
-                    $("#form-message").html("Internal server error")
-                    break;
-            }
-            $("#form-message").show()
+            },
         }).always(function(data){
             $("#loading").hide()    // hide loading text
         });

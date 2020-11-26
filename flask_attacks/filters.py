@@ -24,6 +24,24 @@ def _pil_to_array(image):
         return  np.resize(npimage, (*npimage.shape,1))
     return np.array(image).astype(np.float32) / 255.0
 
+def _file_to_cv(image):
+    # read as bytes
+    image = image.read()
+    # convert byte image image to numpy array
+    image = np.frombuffer(image, np.uint8)
+    # decode bytes as a cv image
+    image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+    return image
+
+def _file_to_array(image):
+    # read as bytes
+    image = image.read()
+    # convert byte image image to numpy array
+    image = np.frombuffer(image, np.uint8)
+    # decode bytes as a cv image
+    image = cv2.imdecode(np, cv2.IMREAD_COLOR)
+    return _cv_to_array(image)
+
 def _perlin_array(shape = (200, 200),
                   scale = 10.,
                   octaves = 2, 
