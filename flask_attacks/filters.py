@@ -5,6 +5,7 @@ import cv2
 from PIL import Image, ImageEnhance
 from io import BytesIO
 from io import StringIO
+import base64
 
 def _to_cv_image(image):
     return (image*255.).astype(np.uint8) #[:, :, ::-1] #rgb -> bgr
@@ -24,6 +25,10 @@ def _pil_to_array(image):
         return  np.resize(npimage, (*npimage.shape,1))
     return np.array(image).astype(np.float32) / 255.0
 
+def _cv_to_base64(image):
+    buffer = cv2.imencode('.jpg',image)
+    return base64.b64encode(buffer[1]).decode()
+
 def _file_to_cv(image):
     # read as bytes
     image = image.read()
@@ -41,6 +46,8 @@ def _file_to_array(image):
     # decode bytes as a cv image
     image = cv2.imdecode(np, cv2.IMREAD_COLOR)
     return _cv_to_array(image)
+
+
 
 def _perlin_array(shape = (200, 200),
                   scale = 10.,

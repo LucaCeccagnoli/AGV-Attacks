@@ -8,7 +8,7 @@ import PIL
 import numpy 
 import os
 
-from filters import _to_cv_image, _cv_to_array
+from filters import _to_cv_image, _cv_to_array, _cv_to_base64
 
 def attack(in_img, model_path):
 
@@ -17,12 +17,9 @@ def attack(in_img, model_path):
     in_img = _cv_to_array(in_img)
     mod_img_np = model.apply(in_img)
 
-    # convert modified image to jpg and decode in base64
-    buffer = cv2.imencode('.jpg', _to_cv_image(mod_img_np))
-    mod_image_b64 = base64.b64encode(buffer[1]).decode()
+    # return modified np image and its base64 encoding
+    return (mod_img_np, _cv_to_base64(_to_cv_image(mod_img_np)))
 
-    # return modified np image and base64 encoding
-    return (mod_img_np, mod_image_b64)
 
 class ModelLoader(object):
 
