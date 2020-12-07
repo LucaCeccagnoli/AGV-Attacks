@@ -29,7 +29,7 @@ class ModelLoader(object):
         ilast = 0 
         image = X
         for fid in self.model["filters"]:
-            ifilter = self.model["filters_data"][fid]
+            ifilter = self.model["filters_data"][fid]   # dump
             image = ifilter(image,*self.model["params"][ilast:ilast+ifilter.nparams()])
             ilast += ifilter.nparams()
         return image
@@ -63,3 +63,13 @@ class ModelLoader(object):
         self.model["filters_data"] = individual.filters
         #retult self
         return self
+
+    @staticmethod
+    def apply_handmade_filters(in_image, filter_list, filter_data, params):
+        ilast = 0 # remember last applied parameter
+        image = in_image
+        for fid in filter_list:
+            image = filter_data[fid](image,*params[ilast:ilast+ifilter.nparams()])
+            ilast += ifilter.nparams()
+        return image
+        

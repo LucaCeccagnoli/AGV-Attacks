@@ -3,11 +3,13 @@ import copy
 import itertools
 import numpy as np
 from tqdm import tqdm
-from log import Log
-from sklearn.utils import shuffle as sk_shuffle
-from concurrent.futures import ProcessPoolExecutor
-from concurrent.futures import as_completed
-from nsga2 import nsga_2_pass,dominates
+
+# uncomment and install these if necessary
+# from log import Log
+# from sklearn.utils import shuffle as sk_shuffle
+# from concurrent.futures import ProcessPoolExecutor
+# from concurrent.futures import as_completed
+# from nsga2 import nsga_2_pass,dominates
 
 def ga_concat(x):
     return list(itertools.chain.from_iterable(x))

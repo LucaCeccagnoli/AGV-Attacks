@@ -1,7 +1,44 @@
+table{
+    height: 30vh;
+}
+
+td, th{
+    padding: 10px;
+}
+
+
+div input{
+    float:left
+}
+
+.img-container{
+    position: relative;
+    text-align: center;
+    display: flex;
+}
+
+.shown-image{
+    max-height: 30vh;
+    display: table-row;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.icon{
+    height: 35px;
+    width: 35px;
+    margin-top: 9px;
+}
+
+.align-top{
+    vertical-align: text-top;
+}
+
 .border-3{
     border-width: 3px !important;
 }
 
-.red{
-    color: red;
+.square:before{
+    display: block;
+    padding-top: 100%; 
 }

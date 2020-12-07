@@ -35,7 +35,7 @@ def index():
     form.imagenet_image.choices = tuple_list_from_dict(get_images(IMAGE_DIRECTORY + "imagenet/"))
     form.model.choices = tuple_list_from_dict(get_models(MODEL_DIRECTORY))
 
-    return render_template('flask-attacks.html', form = form)
+    return render_template('index.html', form = form)
 
 @app.route('/predict/', methods = ['POST'])
 def run_prediction():

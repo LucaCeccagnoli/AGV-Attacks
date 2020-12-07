@@ -147,6 +147,7 @@ class ImageFilter(object):
 # ]
 
 # INSTAGRAM
+# passa a filters_data
 Filters = [
     ImageFilter('clarendon', [ 
         ParameterDomain('intensity', 'float', [0.1,1.0], 1.0),

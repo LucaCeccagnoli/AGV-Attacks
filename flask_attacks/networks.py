@@ -17,7 +17,7 @@ class NNModels(object):
     def get_predictions(self, in_img, network_name):
         # network model selection
         model = None
-        size = (244,244)
+        size = (224,224)
         if network_name == 'VGG19':
             if self.MODEL_VGG19 is None:
                 from tensorflow.keras.applications.vgg19 import VGG19
@@ -70,6 +70,7 @@ class NNModels(object):
         # predict model and return top prediction
         features = model.predict(img)
         name = decode_predictions(features, top=1)[0][0][1]
+        print("immagine: ",decode_predictions(features, top = 1)[0])
         code = int(numpy.argmax(features))
         return (name, code)   # ottiene nome della classe predetta
 
