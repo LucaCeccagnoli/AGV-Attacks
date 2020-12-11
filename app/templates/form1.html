@@ -1,0 +1,50 @@
+<table class=" mb-0" width = "100%">
+    <colgroup>
+        <col width = "5%">
+        <col width = "20%">
+        <col width = "25%">
+        <col width = "50%">
+    </colgroup>
+    <tr valign = "bottom">
+        <td colspan="3" class = "pb-0"> 
+            <h5>Select or Upload an Image</h5> 
+        </td>
+        <td class = "align-top" rowspan="4">
+            <div class = "img-container">
+                <img id = "s-img1" class="img-fluid border border-3 rounded shown-image" style="display:block" src="" alt="">
+            </div>
+        </td>
+    </tr>
+    <tr class = "p-0">
+        <td class = "pt-3">
+            {{ form.custom_image(accept="image/*", id = "image-upload", width = "10px",
+                                style = "display:none;") }}
+            <label for="image-upload" class = "align-middle btn btn-light border border-2 rounded">
+                <svg width="24px" height="24px" viewBox="0 0 16 16" class="bi bi-arrow-bar-up" style = "display:block" fill="" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M8 10a.5.5 0 0 0 .5-.5V3.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 3.707V9.5a.5.5 0 0 0 .5.5zm-7 2.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5z"/>
+                </svg>
+            </label>
+        </td>
+        <td class = "pl-0 ml-0">
+            {{ form.imagenet_image(id = "image-select", class = "custom-select btn btn-light") }}
+        </td>
+        <td id = 'selected-image-text'>
+            No image chosen
+        </td>
+    </tr>
+    <tr>
+        <td valign = "top" colspan="2">
+            <h5>Select a network to attack</h5>
+            <div>{{ form.network(id = "select-network" , class = "custom-select btn btn-light") }}</div>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="3">
+            <button id="run-prediction" class = "btn btn-primary">Predict class</button>
+        </td>
+    </tr>
+    <tr id = "s-class1" class = "border-3 border-top p-0" valign = "top">
+        <th colspan="3"><p>Classified as:</p></th>
+        <td><p id = "original-class" class = "text-center">aaaa</p></td>
+    </tr>
+</table>

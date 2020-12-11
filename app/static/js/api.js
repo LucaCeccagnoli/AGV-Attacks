@@ -15,11 +15,6 @@ function select_network(network){
     selected_network = network;
 }
 
-// save the selected attack model
-function select_attack(attack){
-    selected_attack = attack;
-}
-
 // predict the class of an image using a specific network
 // input: file: input image, string: network name, callback: function (optional)
 // output: string: name of the predicted class 
@@ -77,12 +72,13 @@ function run_prediction(image, network, callback = null){
 //         or int: server codes 200, 404, 500
 function run_attack(image, model, network,callback = null){
     // generate json data
-    var jsonData = {}
-    jsonData['model'] = model
-    jsonData['network'] = network
+    var jsonData = {
+        'model': model,
+        'network': network
+    }
 
     // validate input
-    if(!original_image){
+    if(!image){
         $("#s-msg").html("Please select an image to upload.");
         $("#s-msg").show()
         return
@@ -100,7 +96,7 @@ function run_attack(image, model, network,callback = null){
 
     // add data to FormData to send it in ajax
     var formData = new FormData();
-    formData.append("image", original_image);
+    formData.append("image", image);
     formData.append("jsonData", JSON.stringify(jsonData));
 
     // ajax request
@@ -119,7 +115,8 @@ function run_attack(image, model, network,callback = null){
                     response = xhr.responseText;
                     response = JSON.parse(response);
                     output = {
-                        'src': response['encoding'] + response['img_base64'],
+                        'encoding': response['encoding'],
+                        'base64' : response['img_base64'],
                         'class_name': response['mod_class_name'],
                         'class_code': response['mod_class_code']
                     };

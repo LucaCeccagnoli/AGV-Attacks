@@ -5,14 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- bootstrap and jQuery -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 
     <!-- external css and js -->
     <link rel="stylesheet" href="../static/css/flask-attacks.css">
     <script src="../static/js/api.js"></script>
+    <script src="../static/js/ui.js"></script>
+    <script src="../static/js/images.js"></script>
     <style>
-        
+
     </style>
     <script type = "text/javascript">
         // make the app path dynamic
@@ -22,20 +26,21 @@
 </head>
 <body>
     <h1 class = "container text-center mt-2" >Flask Attacks</h1>
+    {% include "class-modal.html" %}
     <!-- User Form -->
     <div class = "container">
         <div id="s-msg" class = "container text-danger"></div>
         <form id = "attack-form" class="form" method="POST" action="runattack/" enctype="multipart/form-data">
             <!-- first form panel -->
             <div id = "s-form1" class = "border border-3 rounded mb-4">
-               {% include 'form1.html' %}
+               {% include "form1.html" %}
             </div>
             <!-- prediction loading message -->
             <p id = "s-loading1" class = "container"> Predicting image class... </p>
 
             <!-- second form panel -->
             <div id = "s-form2" class = "border border-3 rounded mb-4">
-                {% include 'form2.html' %}
+                {% include "form2.html" %}
             </div>
         </form>
     </div>
@@ -49,6 +54,7 @@
 
 
 <script>
+    
     // valid formats for the uploaded images
     const VALID_IMAGE_TYPES = ['image/jpg', 'image/jpeg', 'image/png'];
     // ids of all the input elements in the form
@@ -72,10 +78,11 @@
             "s-loading2",
             "s-result",
     ]
+    const images = {{ images_data|tojson}};
+    const models = null
 
-    var original_image = null;
-    var original_class = null;  // save as an object with keys { name, code}
-    var modified_class = null;  // save as an object with keys { class_name, code}
+    var original_image = new CustomImage("s-img1");
+    var modified_image = new CustomImage("s-img2");
     var selected_network = null;
     var selected_attack = null;
 
@@ -83,67 +90,80 @@
         //initialize UI
         hide_elements_by_id(UI_IDS);
         $('#s-form1').show();
+
+        // initialize predefined images
+        $('#image-select').append(
+                `<option value=''>ILSVRC2012 images</option> `
+            );
+        images.forEach(image =>{
+            $('#image-select').append(
+                `<option value='${image['b64data']}'>${image['name']}</option> `
+            );
+        });
     });
 
     // Event handlers
     $('#image-select').change(function(){
         // UI
         hide_elements_by_id(["s-form2","s-class2","s-class1", "s-result"]);
+        
+        base64 = $(this).val();
+        // if an imagenet image is selected
+        if(base64){
+            original_image.fromBase64(base64); // new url for the image
+            original_image.visible(true);
 
-        show = false;
-        if(($(this).val())){
-            // if an imagenet image is selected
-            original_image = base64_to_blob($(this).val(), "image/jpeg");
-            show = true;
             $('#selected-image-text').html($("#image-select option:selected").text()); 
+        // if the starting option is selected
         }else{
-            // if the starting option is selected
             $('#selected-image-text').html("No image chosen"); 
-            original_image = null;
+            original_image.visible(false);
+            original_image.reset();
         } 
         // remove eventual uploaded files
         $('#image-upload').val("");
-        console.log( $('#image-upload').prop("files"));
-        set_img_tag('s-img1',original_image,show);
     })
 
     $('#image-upload').change(function(){ 
         hide_elements_by_id(["s-form2","s-class2","s-class1", "s-result"]);
-        image =  $(this).prop("files")[0]
+        image =  $(this).prop("files")[0];
 
         // check image format
         if (!VALID_IMAGE_TYPES.includes(image['type'])) {
             // notify the user and reset the input field
             $("#s-msg").html("Please select an image in format png / jpg / jpeg.");
             $("#s-msg").show();
-            $("#image-upload").val(null);
+            $("#image-upload").val("");
         }else{
-            original_image = image
-            set_img_tag('s-img1', image, true)
+            original_image.fromBlob(image)
+            original_image.visible(true);
+
             $('#selected-image-text').html($("#image-upload").val()); 
-            $('#image-select').prop('selectedIndex',0);
+            $('#image-select').prop('selectedIndex',0); 
         }
     });
 
     $("#select-network").change(function(){
-        select_network( $(this).val());   
+        selected_network = $(this).val();   
         hide_elements_by_id(["s-form2","s-class2","s-class1", "s-result"]);
     });
 
     $("#select-attack").change(function(){
-        select_attack( $(this).val());    
-        console.log(selected_attack);
+        selected_attack = $(this).val();    
     });
 
     $("#run-prediction").on("click", function(e){
         // prevent page reload
         e.preventDefault();
 
-        if(original_image && selected_network){
+        //reset modified image
+        modified_image.reset();
+
+        if(original_image.blob && selected_network){
             $("#s-loading1").show()  
             disable_input(INPUT_IDS);
             hide_elements_by_id(["s-msg","s-form2","s-result"])
-            run_prediction(original_image, selected_network, (output) => {
+            run_prediction(original_image.blob, selected_network, (output) => {
                 console.log("callback executed");
                 resp = Object.prototype.toString.call(output); 
 
@@ -151,26 +171,44 @@
                 if(Object.prototype.toString.call(output) === "[object Object]"){
 
                     // if the passed image is a custom image by the user, ask for confirmation on the prediction
-                    abort = false;
                     if( $("#image-upload").val() != ''){
-                        if (confirm('Your image was classified as: \n \"'+output['class_name']
-                            + '\" \n are you satisfied with the prediction?')) {
-                            // keep going
-                        } else {
-                            // abort the operation
-                            abort = true;
-                        }
-                    }
+                        // if "ok" is clicked
+                        class_modal['ok_func'] = function(){
+                            // get original image class name and code
+                            original_image.class_code = output['class_code'];
+                            original_image.class_name = output['class_name'];
 
-                    if(!abort){
-                        // get original image class name and code
-                        original_class = {
-                            'name': output['class_name'],
-                            'code': output['class_code']
+                            // change UI
+                            $("#original-class").html(original_image.class_name);
+                            show_elements_by_id(["s-form2","s-class1"]);
                         }
-                        // change UI
-                        $("#original-class").html(original_class['name']);
-                        show_elements_by_id(["s-form2","s-class1"]);
+
+                        // if "cancel" is clicked
+                        class_modal['cancel_func'] = function(){   
+                            return
+                        }
+
+                        // show the modal window
+                        $("#" + class_modal['prediction_id']).html(output['class_name'])
+                        $("#" + class_modal['id']).modal('show');
+                    }
+                    else{
+                        // check if the preset image has been predicted correctly
+                        index = document.getElementById("image-select").selectedIndex -1; // -1 because of neutral option
+                        if(images[index]['class_code'] == output['class_code']){
+                            // set original image class name and code
+                            original_image.class_code = output['class_code'];
+                            original_image.class_name = output['class_name'];
+
+                            // change UI
+                            $("#original-class").html(original_image.class_name);
+                            show_elements_by_id(["s-form2","s-class1"]);
+                        }
+                        else{
+                            // show an error message
+                            $("#s-msg").html(`the image was classified incorrectly: expected ${images[index]['class_code']}, got ${output['class_code']} `);
+                            $("#s-msg").show();
+                        }
                     }
                 }
                 // response is a number
@@ -197,25 +235,31 @@
 
         // prevent page reload
         e.preventDefault();
-        if(original_image && selected_attack && selected_network){
-
+        if(original_image.blob && selected_attack && selected_network){
+            //UI
             hide_elements_by_id(["s-msg", "s-result"])  
             disable_input(INPUT_IDS);
-            $("#s-loading2").show()  
+            $("#s-loading2").show();
+            console.log(original_image);
 
             //response cointains keys 'src' and 'class'
-            run_attack(original_image, selected_attack, selected_network, (output) =>{
+            run_attack(original_image.blob, selected_attack, selected_network, (output) =>{
                 if(Object.prototype.toString.call(output) === "[object Object]"){
                         // get output and show modified image
                         modified_class =  {
                             "name": output['class_name'],
                             "code": output['class_code']
                         }
-                        $("#s-img2").attr("src", output['src']);
-                        $("#modified-class").html(modified_class['name']);
+                        modified_image.fromBase64(output['base64']);
+                        modified_image.class_code = output['class_code'];
+                        modified_image.class_name = output['class_name'];
+
+                        // UI
+                        $("#modified-class").html( modified_image.class_name);
+                        modified_image.visible(true);
                         
                         // compare predictions
-                        if(modified_class['code'] === original_class['code']){
+                        if(modified_image.class_code === original_image.class_code){
                             $("#s-result").html("Attack failed");
                             $("#s-result").removeClass("bg-success");
                             $("#s-result").addClass("bg-danger");
@@ -225,7 +269,7 @@
                             $("#s-result").removeClass("bg-danger");
                             $("#s-result").addClass("bg-success");
                         }
-                        show_elements_by_id(["s-result","s-img2","s-class2"])
+                        show_elements_by_id(["s-result","s-class2"])
 
                         // generate file and download link from the modified image 
                         fetch(document.getElementById('s-img2').src)
