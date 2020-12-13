@@ -1,49 +1,60 @@
-<!-- Modal to confirm class prediction -->
+<script>
+    // object containing all the functions associated with the modal
+    // use these when referencing the modal from other templates
+    var class_modal = {
+        "ok": null,    // function executed by "choose" buttons
+        "cancel": null,    // function executed by the "cancel" button
+        "new_entry": function(class_code, prediction){
+            // writes an entry in the modal window with prediction data and a button
+            // the button runs the ok function passing the class code as a parameter
+            $("#class-modal-content").append(
+                `   <div class="row">
+                        <div class = "col-sm-3 font-weight-bold">${prediction['name']}</div>
+                        <div class = "col-sm-1"></div>
+                        <div class="col-sm-3 text-center">${prediction['probability']} %</div>
+                        <div class="col-sm-2"></div>
+                        <button class = "col-sm-2 btn btn-success" 
+                            onclick = 'class_modal["ok"](${class_code})'>
+                                Choose
+                        </button>
+                        <div class="col-sm-1"></div>
+                    </div>
+                    <br>
+                `
+            );
+        },
+        "open": function(){ 
+                $("#class-modal").modal('show')
+            },
+        "close": function(){
+                console.log(class_modal['id']);
+                $("#class-modal").modal('hide');
+                $("#class-modal-content").empty();
+            }
+    }
 
+</script>
+
+<!-- Modal to confirm class prediction -->
 <div id = "class-modal" class = "modal">
     <div class="modal-dialog modal-dialog-centered">
         <div class = "modal-content bg-light border border-3 rounded">
             <div class = "modal-body container-fluid">
                 <div class = "">
-                    <div class = "text-center">Your image was classified as:</div>
+                    <h5 class = "text-center">Top classifications for your image:</h5>
                 </div>
                 <br>
-                <div class="">
-                    <h5 id = "class-modal-prediction" class = "text-center"></h5>
+                <div id = "class-modal-content">
+                    <!-- dynamically generated entries go here ... -->
                 </div>
-                <br>
+
+                <!--cancel button-->
                 <div class="row">
-                    <div class="col-1"></div>
-                    <button id = "class-modal-cancel" class = "col-4 btn btn-danger">Cancel</button>
-                    <div class="col-2"></div>
-                    <button id = "class-modal-ok" class = "col-4 btn btn-success">Ok</button>
-                    <div class="col-1"></div>
+                    <div class="col-md-4"></div>
+                    <button  class = "col-md-4 btn btn-danger" onclick = 'class_modal["cancel"]()'>Cancel</button>
+                    <div class="col-md-4"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<script>
-    // object containing all the tag ids and functions associated with the modal
-    // use these when referencing the modal from other templates
-    var class_modal = {
-        "id": "class-modal",
-        "ok_id": "class-modal-ok",
-        "cancel_id": "class-modal-cancel",
-        "prediction_id": "class-modal-prediction",
-        "ok_func": null,
-        "cancel_func": null
-    }
-
-    // run the ok function and close the modal
-    $("#" + class_modal['ok_id']).on("click", function(e){
-        class_modal['ok_func']();
-        $("#class-modal").modal('hide');
-    });
-
-    // run the cancel function and close the modal
-    $("#" + class_modal['cancel_id']).on("click", function(e){
-        class_modal['cancel_func']();
-        $("#class-modal").modal('hide');
-    });
-</script>

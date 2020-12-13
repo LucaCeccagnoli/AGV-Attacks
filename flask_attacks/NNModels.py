@@ -14,7 +14,7 @@ class NNModels(object):
         
 
 # input: numpy or cv2 image
-    def get_predictions(self, in_img, network_name):
+    def get_predictions(self, in_img, network_name, top = 3):
         # network model selection
         model = None
         size = (224,224)
@@ -69,13 +69,25 @@ class NNModels(object):
 
         # predict model and return top prediction
         features = model.predict(img)
-        name = decode_predictions(features, top=1)[0][0][1]
-        print("immagine: ",decode_predictions(features, top = 1)[0])
-        code = int(numpy.argmax(features))
-        return (name, code)   # ottiene nome della classe predetta
+        predictions = []
+        for p in decode_predictions(features, top=top)[0]:
+            predictions.append([p[0], p[1], float(p[2])])
+
+        # int(numpy.argmax(features))
+        class_codes = []
+        for i in range(top):
+            index = int(numpy.argmax(features))      # indici sbagliati dopo la prima iterazioni
+            if(i > 0):
+                class_codes.append(index + 1)
+            else:
+                class_codes.append(index)
+            features = numpy.delete(features, index)   
+        
+        print("immagini: ",predictions)
+        print("codici: ",class_codes)
+        return (predictions, class_codes)   # ottiene nome della classe predetta
 
 if __name__ == '__main__':
     img = cv2.imread('dolce.jpg')
     nnmodel = NNModels()
-    print(nnmodel.get_predictions(img, 'VGG19'))
-    print(nnmodel.get_predictions(img, 'VGG19'))
+    print(nnmodel.get_predictions(img, 'MobileNetV2', 3))

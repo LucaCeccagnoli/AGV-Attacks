@@ -19,10 +19,11 @@ function select_network(network){
 // input: file: input image, string: network name, callback: function (optional)
 // output: string: name of the predicted class 
 //         or int: server codes 200, 404, 500
-function run_prediction(image, network, callback = null){
+function run_prediction(image, network, top = 1, callback = null){
     // generate json data
     jsonData = {
-        "network": network
+        "network": network,
+        "top": top
     }
     var formData = new FormData();
     formData.append("image", image);
@@ -43,12 +44,9 @@ function run_prediction(image, network, callback = null){
                     // get json response data
                     response = xhr.responseText;
                     response = JSON.parse(response);
-                    output = {
-                        'class_name': response['class_name'],
-                        'class_code': response['class_code']
-                    }
+                    console.log(response);
                     if(callback){
-                        return callback(output)
+                        return callback(response)
                     }
                     else return xhr.status
                 }
@@ -70,11 +68,12 @@ function run_prediction(image, network, callback = null){
 // input: file: input image, string: attack name, string: network name, callback: function (optional) 
 // output: string: modified image as base64 string, string: the predicted class on the image
 //         or int: server codes 200, 404, 500
-function run_attack(image, model, network,callback = null){
+function run_attack(image, model, network, top = 1, callback = null){
     // generate json data
     var jsonData = {
         'model': model,
-        'network': network
+        'network': network,
+        'top': top
     }
 
     // validate input

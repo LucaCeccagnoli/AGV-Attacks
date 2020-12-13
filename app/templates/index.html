@@ -105,7 +105,7 @@
     // Event handlers
     $('#image-select').change(function(){
         // UI
-        hide_elements_by_id(["s-form2","s-class2","s-class1", "s-result"]);
+        hide_elements_by_id(["s-form2","s-class2","s-class1", "s-result", "s-img2"]);
         
         base64 = $(this).val();
         // if an imagenet image is selected
@@ -125,7 +125,7 @@
     })
 
     $('#image-upload').change(function(){ 
-        hide_elements_by_id(["s-form2","s-class2","s-class1", "s-result"]);
+        hide_elements_by_id(["s-form2","s-class2","s-class1", "s-result", "s-img2"]);
         image =  $(this).prop("files")[0];
 
         // check image format
@@ -145,7 +145,7 @@
 
     $("#select-network").change(function(){
         selected_network = $(this).val();   
-        hide_elements_by_id(["s-form2","s-class2","s-class1", "s-result"]);
+        hide_elements_by_id(["s-form2","s-class2","s-class1", "s-result", "s-img2"]);
     });
 
     $("#select-attack").change(function(){
@@ -162,51 +162,67 @@
         if(original_image.blob && selected_network){
             $("#s-loading1").show()  
             disable_input(INPUT_IDS);
-            hide_elements_by_id(["s-msg","s-form2","s-result"])
-            run_prediction(original_image.blob, selected_network, (output) => {
-                console.log("callback executed");
-                resp = Object.prototype.toString.call(output); 
-
+            hide_elements_by_id(["s-msg","s-form2","s-result", "s-img2"])
+            run_prediction(original_image.blob, selected_network, top = 3, (output) => {
+                
                 //response is a string
                 if(Object.prototype.toString.call(output) === "[object Object]"){
 
-                    // if the passed image is a custom image by the user, ask for confirmation on the prediction
+                    // predictions array contains the class codes ordered by their probability
+                    var predictions = Object.keys(output).map(function(class_code){
+                        return [output[class_code]['probability'], class_code];
+                    }); 
+                    predictions.sort().reverse();
+
+                    // if the passed image is a custom image by the user, show a modal window to choose
+                    // one from the top predicted classes
                     if( $("#image-upload").val() != ''){
-                        // if "ok" is clicked
-                        class_modal['ok_func'] = function(){
+                        // function executed on "choose" click
+                        class_modal['ok'] = function(class_code){
                             // get original image class name and code
-                            original_image.class_code = output['class_code'];
-                            original_image.class_name = output['class_name'];
+                            original_image.class_code = class_code;
+                            original_image.class_name = output[class_code]["name"];
 
                             // change UI
+                            $(class_modal['close']());
                             $("#original-class").html(original_image.class_name);
                             show_elements_by_id(["s-form2","s-class1"]);
                         }
 
-                        // if "cancel" is clicked
-                        class_modal['cancel_func'] = function(){   
+                        // function executed on "cancel" click
+                        class_modal['cancel'] = function(){  
+                            // close modal
+                            $(class_modal['close']());
                             return
                         }
 
-                        // show the modal window
-                        $("#" + class_modal['prediction_id']).html(output['class_name'])
-                        $("#" + class_modal['id']).modal('show');
+                        // load entries with predicted classes ordered by their probabiilty
+                        predictions.forEach(function(entry){
+                            class_code = entry[1]
+                            class_modal['new_entry'](class_code, output[class_code]);
+                        });
+                        $(class_modal['open']());
                     }
                     else{
-                        // check if the preset image has been predicted correctly
                         index = document.getElementById("image-select").selectedIndex -1; // -1 because of neutral option
-                        if(images[index]['class_code'] == output['class_code']){
+
+                        // pick the first correct prediction returned by the server
+                        class_code = null;
+                        if(predictions.some(function(entry){
+                            class_code = entry[1]
+                            return images[index]['class_code'] == class_code;
+                        })){
                             // set original image class name and code
-                            original_image.class_code = output['class_code'];
-                            original_image.class_name = output['class_name'];
+                            original_image.class_code = class_code;
+                            original_image.class_name =  output[class_code]["name"];
 
                             // change UI
                             $("#original-class").html(original_image.class_name);
                             show_elements_by_id(["s-form2","s-class1"]);
-                        }
-                        else{
-                            // show an error message
-                            $("#s-msg").html(`the image was classified incorrectly: expected ${images[index]['class_code']}, got ${output['class_code']} `);
+
+                        }else{
+                            // if no correct prediction was found, return an error message
+                            $("#s-msg").html(`No valid classification for this image: try another image or another classifier `);
                             $("#s-msg").show();
                         }
                     }
@@ -232,7 +248,6 @@
     });
 
     $('#run-attack').on("click", function(e){
-
         // prevent page reload
         e.preventDefault();
         if(original_image.blob && selected_attack && selected_network){
@@ -240,10 +255,9 @@
             hide_elements_by_id(["s-msg", "s-result"])  
             disable_input(INPUT_IDS);
             $("#s-loading2").show();
-            console.log(original_image);
 
             //response cointains keys 'src' and 'class'
-            run_attack(original_image.blob, selected_attack, selected_network, (output) =>{
+            run_attack(original_image.blob, selected_attack, selected_network, top = 3, (output) =>{
                 if(Object.prototype.toString.call(output) === "[object Object]"){
                         // get output and show modified image
                         modified_class =  {

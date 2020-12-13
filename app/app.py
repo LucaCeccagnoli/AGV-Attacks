@@ -3,13 +3,13 @@ import sys
 import json
 import glob
 from PIL import Image
-from flask import Flask, render_template, request, jsonify, make_response
+from flask import Flask, render_template, request, jsonify, make_response, Response
 from werkzeug.utils import secure_filename
 
 # project modules
 sys.path.append(os.path.abspath('../flask_attacks'))
 from forms import ModelForm
-from networks import NNModels
+from NNModels import NNModels
 from run_attack import attack
 from filters import _file_to_cv, _cv_to_base64
 
@@ -55,19 +55,24 @@ def run_prediction():
     # get input
     in_img = request.files['image']
     data = json.loads(request.form['jsonData'])
+    print(data)
     network_name = data['network']
-    print(network_name)
+    top = data['top']
 
     # predict the image class
-    class_name, class_code = nnmodels.get_predictions(_file_to_cv(in_img), network_name)
-    print(class_name)
-    print(class_code)
+    predictions, class_codes = nnmodels.get_predictions(_file_to_cv(in_img), network_name, top)
 
     # build and return the json response
-    response = {
-        "class_name": class_name, 
-        "class_code": class_code, 
-    }
+    response = {}
+    for i in range(len(class_codes)):
+        response[class_codes[i]] = {
+            "snippet": predictions[i][0],
+            "name": predictions[i][1],
+            "probability": round(predictions[i][2] * 100,2)
+        }
+
+    print(response)
+
     return jsonify(response)
 
 # run attack
@@ -81,19 +86,20 @@ def run_attack():
     data = json.loads(request.form['jsonData'])
     model_path =  os.path.join(MODEL_DIRECTORY, data['model'])
     network = data['network']
+    top = data['top']
 
     # run attack on the image, returns the modified image as a numpy array
     # arguments: input image as array of bytes, path to the model to run the attack, 
     # returns a jpg image in base 64 which can be sent via json
     mod_img_np, mod_img_b64 = attack(_file_to_cv(in_img), model_path)  
-    mod_class_name, mod_class_code = nnmodels.get_predictions(mod_img_np, network)
+    predictions, class_codes = nnmodels.get_predictions(mod_img_np, network, top)
 
     # build and return the json response
     response = {
         "encoding": "data:image/jpeg;base64,", 
         "img_base64": mod_img_b64,
-        "mod_class_name": mod_class_name,
-        "mod_class_code": mod_class_code
+        "mod_class_name": predictions[0][1],
+        "mod_class_code": class_codes[0]
     }
 
     return jsonify(response)
