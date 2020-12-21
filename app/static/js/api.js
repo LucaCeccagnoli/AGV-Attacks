@@ -44,7 +44,6 @@ function run_prediction(image, network, top = 1, callback = null){
                     // get json response data
                     response = xhr.responseText;
                     response = JSON.parse(response);
-                    console.log(response);
                     if(callback){
                         return callback(response)
                     }

@@ -1,0 +1,54 @@
+<div id = "class-list" class="btn-group w-100" role="group">
+
+</div>
+<script>
+    const class_list = {
+        "load_buttons" : function(predictions, disable_input = false){
+            // load class buttons on the page
+            for(var i = 0; i < predictions.length ; i++ ){
+                    $("#class-list").append(`
+                        <button type="button"
+                                id = "class-button" 
+                                class="class-button btn-light btn border border-3 rounded ml-1 mr-1"
+                                onclick = 'class_list_button(${predictions[i][0]},"${predictions[i][2]}")'>
+                            <div class = "text-center font-weight-bold">${predictions[i][2]}</div>
+                            <div class = "text-center">${predictions[i][1]} %</div>
+                        </button>
+                    `);
+                    var buttons = $(".class-button");
+                    if(predictions[i][0] == original_image.class_code){ 
+                        // initialize selection to the button corresponding to the selected class
+                        $(buttons[i]).removeClass("").addClass(" border-primary"); 
+                    
+                    }
+                }
+            if(!disable_input){
+                // attach button event handlers
+                $(".class-button").on("click",function(e){
+                    console.log("clicked");
+                    $(".class-button").not(this).each(function(){
+                        $(this).removeClass("border-primary").addClass("btn-light");
+                    });
+                    $(this).removeClass("").addClass(" border-primary"); 
+                });
+            }
+        },
+
+        "toggle": function(flag){
+            if(flag){
+                $(".class-button").prop("disabled", false);
+            }else{
+                $(".class-button").prop("disabled", true);
+            }
+        },
+
+        "reset": function(){
+            $("#class-list").empty();
+        }
+    }
+
+    function class_list_button(class_code, class_name,){
+        original_image.class_code = class_code;
+        original_image.class_name = class_name;
+    }
+</script>

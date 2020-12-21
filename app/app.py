@@ -40,9 +40,10 @@ def index():
     for image in images:
         images_data.append(
             {
-                "name": image[0].rsplit( ".", 1 )[ 0 ],
+                "file_name": image[0].rsplit( ".", 1 )[ 0 ],
                 "class_code": image[1],
-                "b64data": image[2]
+                "class_name": image[2],
+                "b64data": image[3]
             }
         )
 
@@ -55,7 +56,6 @@ def run_prediction():
     # get input
     in_img = request.files['image']
     data = json.loads(request.form['jsonData'])
-    print(data)
     network_name = data['network']
     top = data['top']
 
@@ -65,7 +65,7 @@ def run_prediction():
     # build and return the json response
     response = {}
     for i in range(len(class_codes)):
-        response[class_codes[i]] = {
+        response[int(class_codes[i])] = {
             "snippet": predictions[i][0],
             "name": predictions[i][1],
             "probability": round(predictions[i][2] * 100,2)
@@ -99,7 +99,7 @@ def run_attack():
         "encoding": "data:image/jpeg;base64,", 
         "img_base64": mod_img_b64,
         "mod_class_name": predictions[0][1],
-        "mod_class_code": class_codes[0]
+        "mod_class_code": int(class_codes[0])
     }
 
     return jsonify(response)
@@ -116,10 +116,12 @@ def get_models(path):
     return choices
 
 def get_images(path):
-    images = []     # [image name, ground truth code, base64 encoding]  
+    images = []     # [image name, ground truth code, ground truth name, base64 encoding]  
 
     # ground truth file
     ground_truth = open((path + "caffe_clsloc_validation_ground_truth.txt"),'r').readlines()
+
+    # read images in the given path
     for fname in os.listdir(path):
         if fname.endswith(ALLOWED_EXTENSIONS):
             #images.append([(f.rsplit( ".", 1 )[ 0 ]), f])
@@ -127,23 +129,35 @@ def get_images(path):
 
 
     if(len(images) > 0):
+        # Ground Truth Codes
         # read ground truth files, when an image matches one in images, get its code
-        # O(n) but only works the entries in images are ordered like the ones in the folder
+        # O(n) but only if works the entries in images are ordered like the ones in the folder
         current = 0
         for row in ground_truth:
             split = row.split()
             if split[0] == images[current][0]:   # if image names match
-                images[current].append(split[1]) # append the ground_truth code
+                images[current].append(int(split[1])) # append the ground_truth code
                 current += 1
                 if(current > len(images)-1):
                     break
 
+        # Ground Truth Names
+        # sort the images according to their ground truth code and find their names in the imagenet class index
+        images.sort(key = lambda x: x[1])
+        class_indexes =  json.load(open(path + "imagenet_class_index.json"))
+        current = 0
+        for key, value in class_indexes.items():
+            if key == str(images[current][1]):
+                images[current].append(value[1])
+                current += 1
+            if(current > len(images)-1):
+                break
+        # sort the images again by their names
+        images.sort(key = lambda x: x[0])
+
         # encode every image in base64 to send it to the client
         for image in images:
             with open(path + image[0], mode = 'rb') as byte_image:
-                # file name without extension as the label
-                label = image[0].rsplit( ".", 1 )[ 0 ]
-
                 # substitute the b64 encoding to the original file
                 b64_image = _cv_to_base64(_file_to_cv(byte_image))
                 image.append(b64_image)

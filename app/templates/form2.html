@@ -1,24 +1,25 @@
-<table class=" mb-0" width = "100%">
+<table class=" m-0 p-0" width = "100%">
+    </tr>
     <colgroup>
         <col width = "50%">
         <col width = "50%">
     </colgroup>
     <tr height = "10%">
-        <td class = "pb-0"><h5>Select an attack model</h5></td>
+        <td  class = "">{{ form.model(id = "select-attack", class="custom-select btn btn-light") }}</td>
         <td class = "align-top" rowspan = "3">
             <div class = "img-container">
                 <img id = "s-img2" class="img-fluid border border-3 rounded shown-image" style="display:block" src="" alt="">
             </div>
         </td>
     </tr>
-    <tr height = "10%" valign = "top">
-        <td  class = "w-25">{{ form.model(id = "select-attack", class="custom-select btn btn-light w-50") }}</td>
+    <tr height = "10%" valign = "bottom">
+        <td> <button id = 'run-attack' class="btn btn-primary">Create an attack model</button></td>
     </tr>
-    <tr  hieght = "10%" valign = "bottom">
+    <tr>
         <td> <button id = 'run-attack' class="btn btn-danger">Run Attack</button></td>
     </tr>
-    <tr id = "s-class2" class = "border-3 border-top pb-0">
-        <td><p>Classified as:</p></td>
+    <tr id = "s-class2" class = "">
+        <td><p id = "s-msg1"></p></td>
         <td><p id = "modified-class" class = "text-center"></p></td>
     </tr>
 </table>

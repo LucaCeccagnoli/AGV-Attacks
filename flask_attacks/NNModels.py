@@ -67,21 +67,14 @@ class NNModels(object):
         img = _cv_to_array(img)
         img = numpy.expand_dims(img, axis = 0)
 
-        # predict model and return top prediction
+        # predict model and return top predictions
         features = model.predict(img)
         predictions = []
         for p in decode_predictions(features, top=top)[0]:
             predictions.append([p[0], p[1], float(p[2])])
 
-        # int(numpy.argmax(features))
-        class_codes = []
-        for i in range(top):
-            index = int(numpy.argmax(features))      # indici sbagliati dopo la prima iterazioni
-            if(i > 0):
-                class_codes.append(index + 1)
-            else:
-                class_codes.append(index)
-            features = numpy.delete(features, index)   
+        # get the indexes of the top predictions
+        class_codes = numpy.flip(numpy.argsort(features[0]))[:top]
         
         print("immagini: ",predictions)
         print("codici: ",class_codes)
