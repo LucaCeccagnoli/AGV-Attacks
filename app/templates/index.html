@@ -15,12 +15,6 @@
     <script src="../static/js/api.js"></script>
     <script src="../static/js/ui.js"></script>
     <script src="../static/js/images.js"></script>
-    <style>
-        
-        td{
-
-        }
-    </style>
     <script type = "text/javascript">
         // make the app path dynamic
         $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
@@ -31,6 +25,7 @@
     <h1 class = "container text-center mt-2" >Flask Attacks</h1>
     <!-- modal windows -->
     {% include "class-modal.html" %}
+    {% include "filter-modal.html" %}
     <!-- User Form -->
     <div class = "container w-75">
         <!-- first form panel -->
@@ -46,7 +41,7 @@
                 {% include "class-list.html" %}
             </div>
         </div>
-
+        <br>
         <!-- second form panel -->
         <div id = "s-form2">
             <h5>Select or create an attack model</h5>
@@ -57,8 +52,9 @@
     </div>
     <br>
 
-    <!-- success / failure message -->
-    <h5 id = "s-result" class = "bg-success text-white text-center mt-0 mb-3 p-2"></h5>
+    <!-- success / failure message 
+    <h5 id = "s-result" class = "container bg-success text-white text-center mt-0 mb-3 p-2"></h5>
+    -->
 
 <script>
     
@@ -72,7 +68,8 @@
         "select-attack",
         "run-attack",
         "run-prediction",
-        "class-button"
+        "class-button",
+        "custom-filter"
     ]
 
     const UI_IDS = [
@@ -116,7 +113,7 @@
     // Event handlers
     $('#image-select').change(function(){
         // UI
-        hide_elements_by_id(["s-form2","s-class2","s-class1", "s-result", "s-img2"]);
+        hide_elements_by_id(["s-form2","s-class-list","s-class2","s-class1", "s-result", "s-img2"]);
         image = images[$(this).val()]
 
         // if an imagenet image is selected
@@ -137,7 +134,7 @@
     })
 
     $('#image-upload').change(function(){ 
-        hide_elements_by_id(["s-form2","s-class2","s-class1", "s-result", "s-img2"]);
+        hide_elements_by_id(["s-form2","s-class-list","s-class2","s-class1", "s-result", "s-img2"]);
         image =  $(this).prop("files")[0];
 
         // check image format
@@ -163,7 +160,8 @@
     });
 
     $("#select-attack").change(function(){
-        selected_attack = $(this).val();    
+        selected_attack = $(this).val();  
+        console.log(selected_attack);  
     });
 
     $("#run-prediction").on("click", function(e){
@@ -299,7 +297,7 @@
         e.preventDefault();
         if(original_image.blob && selected_attack && selected_network){
             //UI
-            hide_elements_by_id(["s-msg1", "s-result"])  
+            hide_elements_by_id(["s-msg1","s-msg2", "s-result"])  
             disable_input(INPUT_IDS);
             class_list['toggle'](false);
             $("#s-loading2").show();
@@ -353,9 +351,9 @@
                 class_list['toggle'](true);
             });
         }
-        else if(!selected_attack){           
-            $("#s-msg1").html("Please select an attack model");
-            $("#s-msg1").show();
+        else if(!selected_attack){       
+            console.log("selected attack", selected_attack);    
+            message2("Please select an attack model");
         }
         else if(!selected_network){           
            message1("Please select a network to classify the image");
@@ -365,6 +363,18 @@
            message1("Please select an image to classify");
             $("#s-msg1").show();
         }
+    });
+
+    $("#custom-filter").on("click", function(){
+        var callback = function(output){
+            json_model = JSON.stringify(output)
+            selected_attack = json_model;
+            $('#select-attack').append(
+                `<option value='${json_model}'>${output['name']}</option> `
+            );
+        }
+        filter_modal['open'](callback);
+        console.log("selected_attack: ", selected_attack);
     });
 
 </script>

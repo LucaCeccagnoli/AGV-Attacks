@@ -5,7 +5,7 @@
         <col width = "50%">
     </colgroup>
     <tr height = "10%">
-        <td  class = "">{{ form.model(id = "select-attack", class="custom-select btn btn-light") }}</td>
+        <td  class = "">{{ model_form.model(id = "select-attack", class="custom-select btn btn-light") }}</td>
         <td class = "align-top" rowspan = "3">
             <div class = "img-container">
                 <img id = "s-img2" class="img-fluid border border-3 rounded shown-image" style="display:block" src="" alt="">
@@ -13,13 +13,25 @@
         </td>
     </tr>
     <tr height = "10%" valign = "bottom">
-        <td> <button id = 'run-attack' class="btn btn-primary">Create an attack model</button></td>
+        <td> <button id = 'custom-filter' class="btn btn-primary">Create an a new filter</button></td>
     </tr>
     <tr>
         <td> <button id = 'run-attack' class="btn btn-danger">Run Attack</button></td>
     </tr>
-    <tr id = "s-class2" class = "">
-        <td><p id = "s-msg1"></p></td>
+    <tr id = "" class = "">
+        <td><p id = "s-msg2"></p></td>
         <td><p id = "modified-class" class = "text-center"></p></td>
     </tr>
 </table>
+<script>
+    function message2(text, success = false){
+        $("#s-msg2").html(text);
+        if(success){
+            $("#s-msg2").removeClass("text-danger")
+        }
+        else{
+            $("#s-msg2").addClass("text-danger")
+        }
+        $("#s-msg2").show();
+    }
+</script>

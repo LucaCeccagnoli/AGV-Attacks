@@ -1,0 +1,186 @@
+<script>
+    // object containing all the functions associated with the modal
+    // use these when referencing the modal from other templates
+    var filter_modal = {
+        "id": "filter-modal",
+        "content": "filter-modal-content",
+        "ok": null,    // function executed by "choose" buttons
+        "cancel": null,    // function executed by the "cancel" button
+        "counter": 0,
+        "new_entry": function(c){
+            // writes an entry in the modal window with prediction data 
+            $("#filter-modal-content").append(
+                `   
+                <tr id = "filter-modal-row-${c}">
+                    <td>
+                        {{ model_form.filters(id = "filter-name-${c}", class = "custom-select btn btn-light") }}
+                    </td>
+                    <td>
+                        <input type="range" id = "filter-intensity-${c}" class = "" min = "0" max = "1" value = "0.5" step = "0.01">
+                    </td>
+                    <td>
+                        <div id = "filter-intensity-val-${c}"></div>
+                    </td>
+                    <td>
+                        <input type="range" id = "filter-alpha-${c}" class = "" min = "0" max = "1" value = "0.5" step = "0.01">
+                    </td>
+                    <td>
+                        <div id = "filter-alpha-val-${c}"></div>
+                    </td>
+                    <td>
+                        <button id = "filter-delete-${c}" class = "btn btn-clear border border-1 rounded w-100">x</button>
+                    </td>
+                </tr>
+                `
+            );
+            // initialize shown values
+            $(`#filter-intensity-val-${c}`).html($(`#filter-intensity-${c}`).val());
+            $(`#filter-alpha-val-${c}`).html($(`#filter-alpha-${c}`).val());
+
+            // event handlers to show the range values
+            $(document).on("input", `#filter-intensity-${c}`, function(){
+                $(`#filter-intensity-val-${c}`).html($(this).val());
+            });
+
+            $(document).on("input", `#filter-alpha-${c}`, function(){
+                $(`#filter-alpha-val-${c}`).html($(this).val());
+            });
+
+            // delete button
+            $(`#filter-delete-${c}`).on("click", function(){
+                $(`#filter-modal-row-${c}`).remove();
+            });
+
+            // raise counter
+            filter_modal['counter']++ ;
+        },
+        "open": function(callback = null){
+                // initialize table
+                $("#filter-modal-content").append(
+                    `
+                    <colgroup>
+                        <col width = "20%">
+                        <col width = "20%">
+                        <col width = "10%">
+                        <col width = "20%">
+                        <col width = "10%">
+                        <col width = "20%">
+                    </colgroup>
+                    <tr id = "filter-modal-rows">
+                        <td class = "text-center">Filters</td>
+                        <td class = "text-center" colspan = "2">Intensity</td>
+                        <td class = "text-center" colspan = "2">Alpha</td>
+                    </tr>
+                    `
+                );
+
+                // load the first button and hide its delete button
+                filter_modal['new_entry'](filter_modal['counter']);
+                $(`#filter-delete-${filter_modal['counter']}`).hide();
+
+                if(callback){
+                    filter_modal['close_callback'] = callback;
+                    console.log("callback: ", filter_modal['close_callback']);
+                }
+
+                $("#" + filter_modal['id']).modal('show');
+            },
+        "close": function(return_output = false){
+
+                //create ouptut
+                var output = null;
+                if(return_output){
+                    console.log("confirmed")
+                    output = {}
+                    if($(`#filter-modal-name`).val() != ""){
+                        output['name'] = $(`#filter-modal-name`).val();
+                    }else{
+                        output['name'] = $(`#filter-modal-name`).attr('placeholder');
+                    }
+
+                    var i = 0;  // index returned by the output
+                    for(var c = 0; c < filter_modal['counter']; c++ ) {
+                        if( $(`#filter-modal-row-${c}`).get().length > 0){
+                            var row = {}
+                            row['name'] = $(`#filter-name-${c}`).val();
+                            row['intensity'] = $(`#filter-intensity-${c}`).val();
+                            row['alpha'] = $(`#filter-alpha-${c}`).val();
+                            output[i] = row;
+                            i++;
+                        }
+                    }
+                    // run callback
+                    if(filter_modal['close_callback']){
+                        filter_modal['close_callback'](output);
+                    }
+                }
+
+                //reset counter and callback
+                filter_modal['counter'] = 0;
+                filter_modal['close_callback'] = null;
+
+                //hide window
+                $("#" + filter_modal['id']).modal('hide');
+
+                //empty table and set counter to 0
+                $("#" + filter_modal['content']).empty();
+
+                return output;
+            },
+        "close_callback": null //executed on close if output is returned
+    }
+</script>
+
+<!-- Modal to create a new filter -->
+<div id = "filter-modal" class = "modal" data-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class = "modal-content bg-light border border-3 rounded">
+            <div class = "modal-body container-fluid pt-0 mt-0">
+                <div class = "row pt-2">
+                    <div class = "col-11"></div>
+                    <button type="button" class="close col-1 mt-0" aria-label="Close" onclick="filter_modal['close']()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="row">
+                    <h4 class = "col-4">Custom filter name: </h4>
+                    <input type="text" id="filter-modal-name" class = "col-7 align-middle" placeholder="My Filter">My Filter
+                </div>
+                <table id = "filter-modal-content" width = "100%">
+
+                </table>   
+                <div class = "row">
+                    <div class = "col-12">
+                        <button id = "add-filter" class = "btn btn border border-1 rounded w-100">+</button>
+                    </div>
+                </div>  
+                <br>          
+                <div class = "row">
+                    <div class = "col">
+                        <button id = "confirm-filter" class = "btn btn-success w-100">Create filter</button>
+                    </div>
+                    <div class = "col">
+                        <button id = "cancel-filter" class = "btn btn-danger w-100">Cancel</button>
+                    </div>
+                </div>   
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $("#add-filter").on("click", function(e){
+        e.preventDefault();
+        filter_modal['new_entry'](filter_modal['counter']);
+    });
+
+    $("#confirm-filter").on("click", function(e){
+        e.preventDefault();
+        filter_modal['close'](true);
+    });
+
+    $("#cancel-filter").on("click", function(e){
+        e.preventDefault();
+        filter_modal['close'](false);
+    });
+</script>

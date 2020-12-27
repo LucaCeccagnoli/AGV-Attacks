@@ -31,7 +31,7 @@ app.config['FLASK_DEBUG'] = 1
 @app.route('/')
 def index():
     # automatically loads models from MODEL_DIRECTORY
-    form = ModelForm()
+    model_form = ModelForm()
     images = get_images(IMAGE_DIRECTORY + "imagenet/")
     images_data = []
 
@@ -47,9 +47,11 @@ def index():
             }
         )
 
-    form.model.choices = tuple_list_from_dict(get_models(MODEL_DIRECTORY))
+    model_form.model.choices = tuple_list_from_dict(get_models(MODEL_DIRECTORY))
 
-    return render_template('index.html', form = form, images_data = images_data)
+    return render_template('index.html', 
+                            model_form = model_form, 
+                            images_data = images_data)
 
 @app.route('/predict/', methods = ['POST'])
 def run_prediction():
@@ -84,6 +86,8 @@ def run_attack():
     # read additional json data
     # data['model'] contains the string name of the model
     data = json.loads(request.form['jsonData'])
+
+    
     model_path =  os.path.join(MODEL_DIRECTORY, data['model'])
     network = data['network']
     top = data['top']
