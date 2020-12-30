@@ -21,11 +21,11 @@ images = [
 ]
 
 filters = [
-    ('Clarendon', "Clarendon"),
-    ('Gingham', "Gingham"),
-    ('Reyes', "Reyes"),
-    ('Juno', "Juno"),
-    ('Lark', "Lark"),
+    ('0', "Clarendon"),
+    ('1', "Gingham"),
+    ('2', "Reyes"),
+    ('3', "Juno"),
+    ('4', "Lark"),
 ]
 
 class ModelForm(FlaskForm):

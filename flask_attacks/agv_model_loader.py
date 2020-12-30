@@ -3,18 +3,28 @@ import pickle
 import copy
 import agv_optimizer
 import base64
+from agv_filters import Filters
 
 class ModelLoader(object):
 
     def __init__(self):
         self.model = None 
 
-    def load(self,path):
-        with open(path, 'r') as jfile:
-            jmodel = json.load(jfile)
-            self.model = copy.copy(jmodel)
-            filters_data_byte = base64.b64decode(jmodel["filters_data"])
+    # input: path to json file or dict
+    def load(self, model):
+        # custom user model
+        if isinstance(model, dict):
+            self.model = copy.copy(model)
+            filters_data_byte = base64.b64decode(model["filters_data"])
             self.model["filters_data"] = pickle.loads(filters_data_byte)
+            print(self.model["filters_data"])
+        # predefined model
+        else:
+            with open(model, 'r') as jfile:
+                jmodel = json.load(jfile)
+                self.model = copy.copy(jmodel)
+                filters_data_byte = base64.b64decode(jmodel["filters_data"])
+                self.model["filters_data"] = pickle.loads(filters_data_byte)
         return self
 
     def save(self,path):
@@ -28,7 +38,9 @@ class ModelLoader(object):
     def apply(self,X):
         ilast = 0 
         image = X
+        print(self.model['filters'])
         for fid in self.model["filters"]:
+            print(fid)      # ImageFilter
             ifilter = self.model["filters_data"][fid]   # dump
             image = ifilter(image,*self.model["params"][ilast:ilast+ifilter.nparams()])
             ilast += ifilter.nparams()
@@ -46,7 +58,7 @@ class ModelLoader(object):
         list_filter = []
         ilast = 0 
         for fid in self.model["filters"]:
-            ifilter = self.model["filters_data"][fid]
+            ifilter = self.model["filters_data"][fid]  
             list_filter.append((ifilter, *self.model["params"][ilast:ilast+ifilter.nparams()]))
             ilast += ifilter.nparams()
         return list_filter

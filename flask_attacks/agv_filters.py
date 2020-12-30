@@ -31,7 +31,7 @@ class ParameterType(object):
 
 class ParameterDomain(object):
     def __init__(self, name, strtype, domain, vinit):
-        self.name = name 
+        self.name = name    # parameter name: intensity, alpha
         self.ptype = ParameterType(strtype)
         self.domain = domain 
         self.value = vinit

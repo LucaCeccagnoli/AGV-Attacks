@@ -10,7 +10,7 @@ from werkzeug.utils import secure_filename
 sys.path.append(os.path.abspath('../flask_attacks'))
 from forms import ModelForm
 from NNModels import NNModels
-from run_attack import attack
+from attacks import attack, custom_attack
 from filters import _file_to_cv, _cv_to_base64
 
 # global variables
@@ -86,25 +86,35 @@ def run_attack():
     # read additional json data
     # data['model'] contains the string name of the model
     data = json.loads(request.form['jsonData'])
-
-    
-    model_path =  os.path.join(MODEL_DIRECTORY, data['model'])
     network = data['network']
     top = data['top']
 
-    # run attack on the image, returns the modified image as a numpy array
-    # arguments: input image as array of bytes, path to the model to run the attack, 
-    # returns a jpg image in base 64 which can be sent via json
-    mod_img_np, mod_img_b64 = attack(_file_to_cv(in_img), model_path)  
-    predictions, class_codes = nnmodels.get_predictions(mod_img_np, network, top)
+    response = {}
+    if (data['model'].endswith(".json")):
+        model_path =  os.path.join(MODEL_DIRECTORY, data['model'])
 
-    # build and return the json response
-    response = {
-        "encoding": "data:image/jpeg;base64,", 
-        "img_base64": mod_img_b64,
-        "mod_class_name": predictions[0][1],
-        "mod_class_code": int(class_codes[0])
-    }
+        # run attack on the image, returns the modified image as a numpy array
+        # arguments: input image as array of bytes, path to the model to run the attack, 
+        # returns a jpg image in base 64 which can be sent via json
+        mod_img_np, mod_img_b64 = attack(_file_to_cv(in_img), model_path)  
+        predictions, class_codes = nnmodels.get_predictions(mod_img_np, network, top)
+
+        # build and return the json response
+        response = {
+            "encoding": "data:image/jpeg;base64,", 
+            "img_base64": mod_img_b64,
+            "mod_class_name": predictions[0][1],
+            "mod_class_code": int(class_codes[0])
+        }
+    else:
+        mod_img_np, mod_img_b64 = custom_attack(_file_to_cv(in_img), json.loads(data['model']))
+        predictions, class_codes = nnmodels.get_predictions(mod_img_np, network, top)
+        response = {
+            "encoding": "data:image/jpeg;base64,", 
+            "img_base64": mod_img_b64,
+            "mod_class_name": predictions[0][1],
+            "mod_class_code": int(class_codes[0])
+        }
 
     return jsonify(response)
 
