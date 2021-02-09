@@ -147,7 +147,7 @@
             original_image.visible(true);
 
             //UI
-            $('#selected-image-text').html($("#image-upload").val()); 
+            $('#selected-image-text').html(""); 
             $('#image-select').prop('selectedIndex',0); 
         }
         class_list['reset']();
@@ -312,6 +312,8 @@
                         modified_image.fromBase64(output['base64']);
                         modified_image.class_code = output['class_code'];
                         modified_image.class_name = output['class_name'];
+                        console.log("attacco: ", modified_image.class_code, modified_image.class_name)
+                        console.log("predizione: ", original_image.class_code, original_image.class_name)
 
                         // UI
                         $("#modified-class").html( modified_image.class_name);

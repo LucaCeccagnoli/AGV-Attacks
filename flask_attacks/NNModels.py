@@ -18,11 +18,13 @@ class NNModels(object):
         # network model selection
         model = None
         size = (224,224)
+        int_model = False
         if network_name == 'VGG19':
             if self.MODEL_VGG19 is None:
                 from tensorflow.keras.applications.vgg19 import VGG19
                 self.MODEL_VGG19 = VGG19(weights='imagenet')
             model = self.MODEL_VGG19
+            int_model = True
             from tensorflow.keras.applications.vgg19 import decode_predictions
 
         elif network_name == 'DenseNet201':
@@ -52,6 +54,7 @@ class NNModels(object):
                 from tensorflow.python.keras.applications.resnet import ResNet50 # (244,244)
                 self.MODEL_RESNET50 = ResNet50(weights='imagenet')
             model = self.MODEL_RESNET50
+            int_model = True
             from tensorflow.keras.applications.resnet import decode_predictions
 
         else:
@@ -65,8 +68,10 @@ class NNModels(object):
 
         img = cv2.resize(in_img, dsize=size, interpolation = cv2.INTER_CUBIC)
         img = _cv_to_array(img)
+        if(int_model):
+            img = img * 255
         img = numpy.expand_dims(img, axis = 0)
-
+        print(img)
         # predict model and return top predictions
         features = model.predict(img)
         predictions = []
