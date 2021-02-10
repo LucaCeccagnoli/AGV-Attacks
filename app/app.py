@@ -132,21 +132,23 @@ def get_models(path):
 def get_images(path):
     images = []     # [image name, ground truth code, ground truth name, base64 encoding]  
 
-    # ground truth file
+    # read the ground truth file inside path
     ground_truth = open((path + "caffe_clsloc_validation_ground_truth.txt"),'r').readlines()
 
-    # read images in the given path
-    for fname in os.listdir(path):
+
+    # get file names of the images inside path
+    # The images need to be named in the format: ILSVRC2012_val_XXXXXXXX.JPEG to be sorted correctly
+    for fname in sorted(os.listdir(path)):
         if fname.endswith(ALLOWED_EXTENSIONS):
-            #images.append([(f.rsplit( ".", 1 )[ 0 ]), f])
             images.append([fname]) 
 
 
     if(len(images) > 0):
         # Ground Truth Codes
-        # read ground truth files, when an image matches one in images, get its code
-        # O(n) but only if works the entries in images are ordered like the ones in the folder
+        # read the ground truth file, when a code in images matches one from the ground truth, append its code
+        # O(n) but only if works the entries in images are ordered like the ones in the ground truth file
         current = 0
+
         for row in ground_truth:
             split = row.split()
             if split[0] == images[current][0]:   # if image names match
@@ -166,8 +168,8 @@ def get_images(path):
                 current += 1
             if(current > len(images)-1):
                 break
-        # sort the images again by their names
-        images.sort(key = lambda x: x[0])
+
+        images.sort(key = lambda x: x[0]) # sort the images again by their names
 
         # encode every image in base64 to send it to the client
         for image in images:
