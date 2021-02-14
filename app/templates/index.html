@@ -68,7 +68,7 @@
         "run-attack",
         "run-prediction",
         "class-button",
-        "custom-filter"
+        "custom-filter",
     ]
 
     const UI_IDS = [
@@ -104,7 +104,7 @@
         for( i = 0; i < images.length; i++){
             $('#image-select').append(
                 // save image index as the option value
-                `<option value='${i}'>${images[i]['file_name']}</option> `
+                `<option value='${i}'>${images[i]['class_name']}</option> `
             );
         }
     });

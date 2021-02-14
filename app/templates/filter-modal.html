@@ -1,4 +1,6 @@
 <script>
+    var number_of_models = 0
+
     // object containing all the functions associated with the modal
     // use these when referencing the modal from other templates
     var filter_modal = {
@@ -51,10 +53,14 @@
                 $(`#filter-modal-row-${c}`).remove();
             });
 
-            // raise counter
+            // raise filter counter for this attack model
             filter_modal['counter']++ ;
         },
+        //ran when opening the modal
         "open": function(callback = null){
+                // load a name for the filter
+                $(`#filter-modal-name`).attr('placeholder', "Attack #"+(number_of_models + 1));
+
                 // initialize table
                 $("#filter-modal-content").append(
                     `
@@ -74,7 +80,7 @@
                     `
                 );
 
-                // load the first button and hide its delete button
+                // load the first button and hide its delete button, so you can't have an empty attack
                 filter_modal['new_entry'](filter_modal['counter']);
                 $(`#filter-delete-${filter_modal['counter']}`).hide();
 
@@ -85,12 +91,15 @@
 
                 $("#" + filter_modal['id']).modal('show');
             },
+        // ran when closing the modal
         "close": function(return_output = false){
 
                 //create ouptut
                 var output = null;
-                if(return_output){
-                    console.log("confirmed")
+                if(return_output == true){
+                    // increase number of filters
+                    number_of_models += 1;
+
                     output = {}
                     output['custom'] = true
                     output['filters'] = []
@@ -146,7 +155,7 @@
                 </div>
                 <div class="row">
                     <h4 class = "col-4">Attack model name: </h4>
-                    <input type="text" id="filter-modal-name" class = "col-7 align-middle" placeholder="My Filter">
+                    <input type="text" id="filter-modal-name" class = "col-7 align-middle" placeholder="">
                 </div>
                 <table id = "filter-modal-content" width = "100%">
 
@@ -171,6 +180,7 @@
 </div>
 
 <script>
+    // event handlers
     $("#add-filter").on("click", function(e){
         e.preventDefault();
         filter_modal['new_entry'](filter_modal['counter']);

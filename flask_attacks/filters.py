@@ -5,6 +5,7 @@ import cv2
 from PIL import Image, ImageEnhance
 from io import BytesIO
 from io import StringIO
+from scipy.interpolate import UnivariateSpline
 import base64
 
 def _to_cv_image(image):
@@ -177,44 +178,47 @@ def perlin_noise(image, octaves = 6,
     c_img /= c_img.max()
     return c_img 
 
-#instragram help 
-from scipy.interpolate import UnivariateSpline
 
-#calcola le lookuptable in hue utilizzando una spline
+#calculate a lookup table through a spline function
 def spread_lookup_table(x, y):
     spline = UnivariateSpline(x, y)
     return spline(range(256))
 
 def hue(image, red = 1, green = 1, blue = 1):
     
-    #converte i valori rgb dell'immagine a interi di 8 bit
+    #converts pixel values from 0-1 to 0-255
     image = _to_cv_image(image)
 
-    # liste di 4 valori per costruire le lookup tables
+    # lists of 4 values used to construct the lookup tables
     base = np.array([0, 64, 128, 255]) 
     redValues = np.clip(base * red, 0, 255)
     greenValues = np.clip(base * green, 0, 255)
     blueValues = np.clip(base * blue, 0, 255)
     
-    # fa in modo che l'ultimo valore (il più alto), rimanga pari a 255. Questo impedisce di modificare i bianchi
+    # Make sure that the last value remains 255, so whites don't get modified
     redValues[-1] = \
     greenValues[-1] = \
     blueValues[-1] = 255
 
-    # calcola le lookuptable di lunghezza 256 a partire da quelle di lunghezza 4
-    # le tabelle conterranno i nuovi valori per i canali
+    # calculate a lookup table of length 256, starting from the base array
+    # the lookup tables will contain the new channel values
     redLookupTable = spread_lookup_table(base, redValues)
     greenLookupTable = spread_lookup_table(base, greenValues)
     blueLookupTable = spread_lookup_table(base, blueValues)
 
-    # opencv utilizza il formato BGR
-    # LUT effettua una trasformazione di un array basata su una lookup table:
-    # ogni vecchio valore viene sostituito da quello cui è mappato nella lookup table
-    red_channel = cv2.LUT(image[:,:, 2], redLookupTable).astype(np.uint8)
-    green_channel = cv2.LUT(image[:,:, 1], greenLookupTable).astype(np.uint8)
-    blue_channel = cv2.LUT(image[:,:, 0], blueLookupTable).astype(np.uint8)
+    # opencv uses a BGR format
+    # LUT transforms an array based on a lookup table:
+    # every old value is swapped with its mapped value in the lookup table
+    red_channel = cv2.LUT(image[:,:, 2], redLookupTable)
+    green_channel = cv2.LUT(image[:,:, 1], greenLookupTable)
+    blue_channel = cv2.LUT(image[:,:, 0], blueLookupTable)
 
-    #assegna i nuovi canali all'immagine
+    # ensure that channels don't overflow
+    np.putmask(red_channel, red_channel > 255, 255)
+    np.putmask(green_channel, green_channel > 255, 255)
+    np.putmask(blue_channel, blue_channel > 255, 255)
+
+    #assegna new channels to the image
     image[:,:, 0] = blue_channel
     image[:,:, 1] = green_channel
     image[:,:, 2] = red_channel 
@@ -235,36 +239,36 @@ def select_by_hsv(image, lower_bound = (90, 50, 30), upper_bound = (130,255,230)
     lower_bound = np.array( lower_bound , dtype = np.uint8, ndmin = 1)
     upper_bound = np.array( upper_bound , dtype = np.uint8, ndmin = 1)
 
-    #ricava la maschera di pixel selezionati. la maschera sarà in scala di grigio, con valore 0(nero) sui pixel scartati e 255(bianco) su quelli selezionati
+    #get a mask for the selected filters. the mask will be in greyscale values, where the selected pixels value 255 and the discarded ones value 0
     mask = cv2.inRange(temp, lower_bound , upper_bound)
 
-    #la maschera va convertita a bgr per poterle riapplicare il colore
+    #convert mask to BGR to reapply color
     mask_bgr = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
 
-    #assegna i colori originali ai pixel selezionati
+    #assign original colors to the selected pixels
     temp = _cv_to_array(image & mask_bgr)
 
     return temp
 
-# sostituzione: sostituisce i pixel di im2 != (0, 0, 0) ai pixel di im1
+# replace pixels from im2 != (0, 0, 0) to the corresponding ones in im1
 def img_replace(im1, im2):
     im1 = np.where(im2 == 0, im1 , im2)
     return im1
 
-# intersezione: ritorna i pixel di im1 che sono presenti in entrambe le immagini
+# selects the pixels from im1 that have an equal value in im1
 def img_intersection(im1, im2):
     im1 = np.where(im2 != 0, im1 , 0)
     return im1
 
-# unisce i pixel di entrambe le immagini. Per i pixel presenti in entrambi, quelli di im2 sovrascriveranno quelli di im1
+# Joins pixels from both images. If they intersect, priority is given to the ones in im2
 def img_union(im1, im2):
     im1 = np.where(im2 != 0, im2 , im1)
 
-# fonde le immagini in percentuale data dal parametro alpha, riferito alla seconda immagine
+# use interpolation to fuse two images
 def interpolate(im1, im2, alpha):
     return ((1.0 - alpha) * im1 + alpha * im2)
 
-#filtri di instagram
+#Instagram filters
 def clarendon(in_image, intensity = 1, alpha = 1):
     image = contrast(in_image, 1.2 * alpha)
     image = edge_enhance(image, 2.0 * alpha)
@@ -302,11 +306,11 @@ def reyes(in_image, intensity = 1 ,alpha = 1):
 def lark_hsv(in_image, intensity = 1, alpha = 1):
     image = gamma_correction(in_image, 0.8 * alpha)
 
-    #seleziona il blu. la maschera deve solo selezionare i pixel da modificare e non deve essere modificata dall'alpha
+    #Select blue colors. Make sure that the alpha does not affect the mask
     mask = gamma_correction(image, 1.3)
     mask = select_by_hsv(mask, lower_bound = (90, 50, 30), upper_bound = (130,255,230))
 
-    #applica filtro ai pixel selezionati
+    #apply effects only to the pixels selected by the mask
     filtered = hue(mask, 0.8 * alpha, 0.8 * alpha, 1.2 * alpha)
     filtered = img_intersection(filtered, mask)
     image = img_replace(image, filtered)

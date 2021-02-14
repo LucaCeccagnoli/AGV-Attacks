@@ -71,7 +71,6 @@ class NNModels(object):
         if(int_model):
             img = img * 255
         img = numpy.expand_dims(img, axis = 0)
-        print(img)
         # predict model and return top predictions
         features = model.predict(img)
         predictions = []
@@ -81,11 +80,8 @@ class NNModels(object):
         # get the indexes of the top predictions
         class_codes = numpy.flip(numpy.argsort(features[0]))[:top]
         
-        print("immagini: ",predictions)
-        print("codici: ",class_codes)
         return (predictions, class_codes)   # ottiene nome della classe predetta
 
 if __name__ == '__main__':
     img = cv2.imread('dolce.jpg')
     nnmodel = NNModels()
-    print(nnmodel.get_predictions(img, 'MobileNetV2', 3))
