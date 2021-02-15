@@ -113,6 +113,7 @@
     $('#image-select').change(function(){
         // UI
         hide_elements_by_id(["s-form2","s-class-list","s-class2","s-class1", "s-result", "s-img2"]);
+        $('#modified-class').html("");
         image = images[$(this).val()]
 
         // if an imagenet image is selected
@@ -259,7 +260,7 @@
 
                         }else{
                              // if no correct prediction was found, return an error message
-                            $("#" + class_modal['result']).html("The model failed to calssify the image correctly");
+                            $("#" + class_modal['result']).html("The model failed to classify the image correctly");
                             $("#" + class_modal['result']).css("color","#d9534f")
 
                             // reset current prediction
