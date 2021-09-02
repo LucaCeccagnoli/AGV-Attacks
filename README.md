@@ -29,22 +29,33 @@ Select a preset image or upload one from your computer, along with a CNN model.\
 ![form 1](/thesis/images/form1-preset-image.PNG)
 
 Press "Predict class" and wait for the prediction to end (will take some time whenever using a model for the first time), then note the prediction scores on the top three classes. The highest one will be used as reference when running the attack.
+ <br />
 ![prediction-correct](/thesis/images/predictions-correct.PNG)
 
+ <br />
 Some models won't be able to correctly classify all images.
+ <br />
 ![prediction-wrong](/thesis/images/predictions-failed.PNG)
 
+ <br />
 If you uploaded a custom image, you will be able to choose the reference class for the attack.
+ <br />
 ![class-1](/thesis/images/ground-truth-1.PNG)
+ <br />
 ![class-2](/thesis/images/ground-truth-2.PNG)
 
+ <br />
 Next, choose one between the two preset attacks.
+ <br />
 ![attacks](/thesis/images/form2-empty.PNG)
 
 Or create a custom attack. You can add infinite combinations of 5 image filters, setting their intensity and alpha value. Clicking "create" will add it to the previous list of available attacks with the name you specified.
+ <br />
 ![custom-attack](/thesis/images/attack-editor.PNG)
+ <br />
 
+ <br />
 Finally, run the attack. If successful, the model will have classified the filtered image differently from the original.
 ![attack-success](/thesis/images/form2-preset-attack.PNG)
-
+ <br />
 
