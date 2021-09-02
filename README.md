@@ -25,25 +25,25 @@ Move to the project directory and run the following commands:
 Then navigate to http://127.0.0.1:5000/ .
 
 Select a preset image or upload one from your computer, along with a CNN model.
-[](/thesis/images/form1-preset-image.PNG)
+[form 1](/thesis/images/form1-preset-image.PNG)
 
 Press "Predict class" and wait for the prediction to end (will take some time whenever using a model for the first time), then note the prediction scores on the top three classes. The highest one will be used as reference when running the attack.
-[](/thesis/images/predictions-correct.PNG)
+[prediction-correct](/thesis/images/predictions-correct.PNG)
 
 Some models won't be able to correctly classify all images.
-[](/thesis/images/predictions-failed.PNG)
+[prediction-wrong](/thesis/images/predictions-failed.PNG)
 
 If you uploaded a custom image, you will be able to choose the reference class for the attack.
-[](/thesis/images/ground-truth-1.PNG)
-[](/thesis/images/ground-truth-2.PNG)
+[class-1](/thesis/images/ground-truth-1.PNG)
+[class-2](/thesis/images/ground-truth-2.PNG)
 
 Next, choose one between the two preset attacks.
-[](/thesis/images/form2-empty.PNG)
+[attacks](/thesis/images/form2-empty.PNG)
 
 Or create a custom attack. You can add infinite combinations of 5 image filters, setting their intensity and alpha value. Clicking "create" will add it to the previous list of available attacks with the name you specified.
-[](/thesis/images/attack-editor.PNG)
+[custom-attack](/thesis/images/attack-editor.PNG)
 
 Finally, run the attack. If successful, the model will have classified the filtered image differently from the original.
-[](/thesis/images/form2-preset-attack.PNG)
+[attack-success](/thesis/images/form2-preset-attack.PNG)
 
 
