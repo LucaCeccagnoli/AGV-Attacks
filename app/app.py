@@ -6,16 +6,18 @@ from PIL import Image
 from flask import Flask, render_template, request, jsonify, make_response, Response
 from werkzeug.utils import secure_filename
 
+print(os.getcwd())
+
 # project modules
-sys.path.append(os.path.abspath('../flask_attacks'))
+sys.path.append(os.path.abspath('flask_attacks'))
 from forms import ModelForm
-from NNModels import NNModels
 from attacks import attack, custom_attack
 from filters import _file_to_cv, _cv_to_base64
+from NNModels import NNModels
 
 # global variables
-MODEL_DIRECTORY = os.path.join(os.getcwd(), 'static/models/') 
-IMAGE_DIRECTORY = os.path.join(os.getcwd(), 'static/images/')  
+MODEL_DIRECTORY = os.path.join(os.getcwd(), 'app/static/models/') 
+IMAGE_DIRECTORY = os.path.join(os.getcwd(), 'app/static/images/')  
 
 app = Flask(__name__)  
 nnmodels = NNModels()
