@@ -37,7 +37,7 @@ Press "Predict class" and wait for the prediction to end (will take some time wh
 Some models won't be able to correctly classify all images.  
 
 
-![prediction-wrong](/thesis/images/predictions-failed.PNG)  
+![prediction-wrong](/thesis/images/prediction-failed.PNG)  
  
 If you uploaded a custom image, you will be able to choose the reference class for the attack.
 
