@@ -24,7 +24,7 @@ Move to the project directory and run the following commands:
 ```
 Then navigate to http://127.0.0.1:5000/ .
 
-Select a preset image or upload one from your computer, along with a CNN model.  /<br/>
+Select a preset image or upload one from your computer, along with a CNN model.  / <br/>
 ![form 1](/thesis/images/form1-preset-image.PNG)
 
 Press "Predict class" and wait for the prediction to end (will take some time whenever using a model for the first time), then note the prediction scores on the top three classes. The highest one will be used as reference when running the attack. 
