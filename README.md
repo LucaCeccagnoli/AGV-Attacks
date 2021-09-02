@@ -51,7 +51,7 @@ Next, choose one between the two preset attacks.
 
 ![attacks](/thesis/images/form2-empty.PNG)
 
-Or create a custom attack. You can add infinite combinations of 5 image filters, setting their intensity and alpha value. Clicking "create" will add it to the previous list of available attacks with the name you specified.
+Or create a custom attack. You can add infinite combinations of 5 image filters inspired by Instagram, setting their intensity and alpha value. Clicking "create" will add it to the previous list of available attacks with the name you specified.
 
 
 ![custom-attack](/thesis/images/attack-editor.PNG)
