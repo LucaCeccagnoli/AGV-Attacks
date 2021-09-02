@@ -29,8 +29,7 @@ Select a preset image or upload one from your computer, along with a CNN model.\
 ![form 1](/thesis/images/form1-preset-image.PNG)
  <br />
 
-Press "Predict class" and wait for the prediction to end (will take some time whenever using a model for the first time), then note the prediction scores on the top three classes. The highest one will be used as reference when running the attack.
- <br />
+Press "Predict class" and wait for the prediction to end (will take some time whenever using a model for the first time), then note the prediction scores on the top three classes. The highest one will be used as reference when running the attack. <br />
 ![prediction-correct](/thesis/images/predictions-correct.PNG)
 
  <br />
